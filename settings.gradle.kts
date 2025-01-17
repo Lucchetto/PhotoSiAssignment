@@ -21,4 +21,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "PhotoSì Assignment"
 include(":app")
- 
+include(":data")
+include(":domain")
