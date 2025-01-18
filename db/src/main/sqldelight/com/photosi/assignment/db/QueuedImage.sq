@@ -1,6 +1,9 @@
+import com.photosi.assignment.db.QueuedImageStatus;
+
 CREATE TABLE QueuedImage (
     id BLOB PRIMARY KEY,
-    fileName TEXT NOT NULL
+    fileName TEXT NOT NULL,
+    status INTEGER AS QueuedImageStatus
 );
 
 insert:
