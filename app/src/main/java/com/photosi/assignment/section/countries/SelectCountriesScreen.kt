@@ -182,7 +182,7 @@ private class CountriesListPreviewParamProvider : PreviewParameterProvider<RepoA
                     phonePrefix = "+91",
                     phoneRegex = "\\+91\\d{10}"
                 )
-            )
+            ).let { list -> List(40) { list }.flatten() }
         ),
     )
 }
