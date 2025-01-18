@@ -25,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -41,6 +42,8 @@ import com.photosi.assignment.R
 import com.photosi.assignment.domain.entity.QueuedImageEntity
 import com.photosi.assignment.ui.component.FullScreenLoading
 import com.photosi.assignment.ui.theme.spacing
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -85,10 +88,12 @@ fun UploadImagesScreen(
         uiState.queue?.let { queue ->
             ImageQueueList(
                 queue = queue,
-                imageRequestProvider = {
-                    ImageRequest.Builder(LocalPlatformContext.current)
-                        .data(viewModel.getFileForQueuedImage(it))
-                        .build()
+                imageRequestProvider = remember {
+                    {
+                        ImageRequest.Builder(LocalPlatformContext.current)
+                            .data(viewModel.getFileForQueuedImage(it))
+                            .build()
+                    }
                 },
                 modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
                 contentPadding = padding
@@ -100,7 +105,7 @@ fun UploadImagesScreen(
 @OptIn(ExperimentalUuidApi::class)
 @Composable
 private fun ImageQueueList(
-    queue: List<QueuedImageEntity>,
+    queue: ImmutableList<QueuedImageEntity>,
     imageRequestProvider: @Composable (QueuedImageEntity) -> ImageRequest,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues()
@@ -143,7 +148,7 @@ private fun ImageQueueListPreview() = MaterialTheme {
             List(50) {
                 val uuid = Uuid.random()
                 QueuedImageEntity(uuid, "${uuid}.png", QueuedImageEntity.Status.Ready)
-            },
+            }.toImmutableList(),
             imageRequestProvider = {
                 ImageRequest.Builder(LocalPlatformContext.current)
                     .data(R.drawable.ic_launcher_foreground)

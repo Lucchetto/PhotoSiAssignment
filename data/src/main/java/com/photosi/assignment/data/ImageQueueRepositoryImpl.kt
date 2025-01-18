@@ -12,6 +12,8 @@ import com.photosi.assignment.db.QueuedImageStatus
 import com.photosi.assignment.db.db.AppDatabase
 import com.photosi.assignment.domain.ImageQueueRepository
 import com.photosi.assignment.domain.entity.QueuedImageEntity
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -29,9 +31,9 @@ internal class ImageQueueRepositoryImpl(
 
     private val imagesDir = application.createImagesDir()
 
-    override val queuedImagesFlow: Flow<List<QueuedImageEntity>>
+    override val queuedImagesFlow: Flow<ImmutableList<QueuedImageEntity>>
         get() = appDatabase.queuedImageQueries.selectAll().asFlow().mapToList(Dispatchers.IO).map {
-            it.map(QueuedImageMapper::mapFrom)
+            it.map(QueuedImageMapper::mapFrom).toImmutableList()
         }
 
     override suspend fun addImages(uris: List<Uri>) = withContext(Dispatchers.IO) {

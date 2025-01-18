@@ -3,11 +3,9 @@ package com.photosi.assignment.section.countries
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,7 +15,6 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeTopAppBar
@@ -25,7 +22,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -49,6 +45,8 @@ import com.photosi.assignment.navigation.AppRoute
 import com.photosi.assignment.ui.component.ErrorStateScreen
 import com.photosi.assignment.ui.component.FullScreenLoading
 import com.photosi.assignment.ui.theme.spacing
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -88,7 +86,7 @@ fun SelectCountriesScreen(
 
 @Composable
 private fun CountriesList(
-    countries: RepoApiResult<List<CountryEntity>, Nothing>,
+    countries: RepoApiResult<ImmutableList<CountryEntity>, Nothing>,
     onRetry: () -> Unit,
     onCountrySelect: (CountryEntity) -> Unit,
     modifier: Modifier = Modifier,
@@ -160,8 +158,8 @@ private fun CountryItem(
     Text(text = country.name)
 }
 
-private class CountriesListPreviewParamProvider : PreviewParameterProvider<RepoApiResult<List<CountryEntity>, Nothing>> {
-    override val values: Sequence<RepoApiResult<List<CountryEntity>, Nothing>> = sequenceOf(
+private class CountriesListPreviewParamProvider : PreviewParameterProvider<RepoApiResult<ImmutableList<CountryEntity>, Nothing>> {
+    override val values: Sequence<RepoApiResult<ImmutableList<CountryEntity>, Nothing>> = sequenceOf(
         Result.Failure(RepoApiErrorEntity.Unknown(IllegalStateException())),
         Result.Failure(RepoApiErrorEntity.Network(IllegalStateException())),
         Result.Success(
@@ -206,7 +204,7 @@ private class CountriesListPreviewParamProvider : PreviewParameterProvider<RepoA
                     phonePrefix = "+91",
                     phoneRegex = "\\+91\\d{10}"
                 )
-            ).let { list -> List(40) { list }.flatten() }
+            ).let { list -> List(40) { list }.flatten() }.toImmutableList()
         ),
     )
 }
@@ -214,7 +212,7 @@ private class CountriesListPreviewParamProvider : PreviewParameterProvider<RepoA
 @PreviewLightDark
 @Composable
 private fun CountriesListPreview(
-    @PreviewParameter(CountriesListPreviewParamProvider::class) countries: RepoApiResult<List<CountryEntity>, Nothing>
+    @PreviewParameter(CountriesListPreviewParamProvider::class) countries: RepoApiResult<ImmutableList<CountryEntity>, Nothing>
 ) = MaterialTheme {
     Scaffold {
         CountriesList(

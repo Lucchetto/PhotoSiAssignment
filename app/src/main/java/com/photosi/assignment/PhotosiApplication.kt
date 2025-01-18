@@ -3,11 +3,9 @@ package com.photosi.assignment
 import android.app.Application
 import android.content.Context
 import coil3.ImageLoader
-import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import coil3.svg.SvgDecoder
 import coil3.util.DebugLogger
-import coil3.util.Logger
 import com.photosi.assignment.data.DataModule
 import com.photosi.assignment.section.countries.SelectCountriesScreenModule
 import com.photosi.assignment.section.upload.UploadImagesScreenModule
