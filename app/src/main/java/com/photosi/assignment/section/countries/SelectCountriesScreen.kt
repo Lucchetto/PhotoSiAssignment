@@ -2,11 +2,14 @@ package com.photosi.assignment.section.countries
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -33,8 +36,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
 import com.photosi.assignment.R
 import com.photosi.assignment.domain.entity.CountryEntity
 import com.photosi.assignment.domain.entity.RepoApiErrorEntity
@@ -136,17 +141,26 @@ private fun CountriesList(
     }
 }
 
+val CountryEntity.flagUrl get() = "https://flagcdn.com/${isoAlpha2.lowercase()}.svg"
+
 @Composable
 private fun CountryItem(
     country: CountryEntity,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-) = Box(
+) = Row(
     modifier = modifier
         .fillMaxSize()
         .clickable(onClick = onClick)
-        .padding(MaterialTheme.spacing.level5)
+        .padding(MaterialTheme.spacing.level5),
+    horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.level4),
+    verticalAlignment = Alignment.CenterVertically
 ) {
+    AsyncImage(
+        country.flagUrl,
+        contentDescription = null,
+        modifier = Modifier.size(42.dp)
+    )
     Text(text = country.name)
 }
 
