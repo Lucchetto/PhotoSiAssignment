@@ -55,7 +55,7 @@ fun SelectCountriesScreen(
     navController: NavController,
     viewModel: SelectCountriesViewModel
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
         topBar = {
