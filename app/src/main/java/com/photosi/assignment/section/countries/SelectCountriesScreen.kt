@@ -1,6 +1,7 @@
 package com.photosi.assignment.section.countries
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,6 +40,7 @@ import com.photosi.assignment.domain.entity.CountryEntity
 import com.photosi.assignment.domain.entity.RepoApiErrorEntity
 import com.photosi.assignment.domain.entity.RepoApiResult
 import com.photosi.assignment.domain.entity.Result
+import com.photosi.assignment.navigation.AppRoute
 import com.photosi.assignment.ui.component.ErrorStateScreen
 import com.photosi.assignment.ui.theme.spacing
 
@@ -64,8 +66,15 @@ fun SelectCountriesScreen(
             CountriesList(
                 countries = it.countries,
                 onRetry = viewModel::reloadCountries,
+                onCountrySelect = {
+                    navController.navigate(AppRoute.UploadImages) {
+                        popUpTo(AppRoute.SelectCountries) {
+                            inclusive = true
+                        }
+                    }
+                },
                 modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-                contentPadding = padding
+                contentPadding = padding,
             )
         } ?: Box(
             modifier = Modifier.padding(padding).fillMaxSize(),
@@ -80,6 +89,7 @@ fun SelectCountriesScreen(
 private fun CountriesList(
     countries: RepoApiResult<List<CountryEntity>, Nothing>,
     onRetry: () -> Unit,
+    onCountrySelect: (CountryEntity) -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(),
 ) = when (countries) {
@@ -121,7 +131,7 @@ private fun CountriesList(
         contentPadding = contentPadding
     ) {
         items(countries.value) {
-            CountryItem(country = it)
+            CountryItem(country = it, onClick = { onCountrySelect(it) })
         }
     }
 }
@@ -129,9 +139,13 @@ private fun CountriesList(
 @Composable
 private fun CountryItem(
     country: CountryEntity,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) = Box(
-    modifier = modifier.padding(MaterialTheme.spacing.level5)
+    modifier = modifier
+        .fillMaxSize()
+        .clickable(onClick = onClick)
+        .padding(MaterialTheme.spacing.level5)
 ) {
     Text(text = country.name)
 }
@@ -193,6 +207,11 @@ private fun CountriesListPreview(
     @PreviewParameter(CountriesListPreviewParamProvider::class) countries: RepoApiResult<List<CountryEntity>, Nothing>
 ) = MaterialTheme {
     Scaffold {
-        CountriesList(countries = countries, onRetry = {}, modifier = Modifier.padding(it))
+        CountriesList(
+            countries = countries,
+            onRetry = {},
+            onCountrySelect = {},
+            modifier = Modifier.padding(it)
+        )
     }
 }

@@ -6,4 +6,7 @@ sealed interface AppRoute {
 
     @Serializable
     data object SelectCountries : AppRoute
+
+    @Serializable
+    data object UploadImages : AppRoute
 }

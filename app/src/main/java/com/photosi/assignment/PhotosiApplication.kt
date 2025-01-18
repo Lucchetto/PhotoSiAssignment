@@ -3,6 +3,7 @@ package com.photosi.assignment
 import android.app.Application
 import com.photosi.assignment.data.DataModule
 import com.photosi.assignment.section.countries.SelectCountriesScreenModule
+import com.photosi.assignment.section.upload.UploadImagesScreenModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -18,7 +19,7 @@ class PhotosiApplication: Application() {
             // Reference Android context
             androidContext(this@PhotosiApplication)
             // Load modules
-            modules(DataModule, SelectCountriesScreenModule)
+            modules(DataModule, SelectCountriesScreenModule, UploadImagesScreenModule)
         }
     }
 }
