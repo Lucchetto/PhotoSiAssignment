@@ -42,6 +42,7 @@ sqldelight {
     databases {
         create("AppDatabase") {
             packageName.set(android.namespace + ".db")
+            schemaOutputDirectory.set(file("src/main/sqldelight/AppDatabase"))
         }
     }
 }
