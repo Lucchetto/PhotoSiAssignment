@@ -1,0 +1,19 @@
+-- Step 1: Rename the existing table
+ALTER TABLE QueuedImage RENAME TO QueuedImage_old;
+
+-- Step 2: Create the new table with the updated schema
+CREATE TABLE QueuedImage (
+    id BLOB PRIMARY KEY,
+    fileName TEXT NOT NULL,
+    status INTEGER AS QueuedImageStatus NOT NULL,
+    resultUrl TEXT
+);
+
+-- Step 3: Copy the data from the old table to the new table
+-- Assign default values explicitly for the new columns
+INSERT INTO QueuedImage (id, fileName, status, resultUrl)
+SELECT id, fileName, 0, NULL -- Replace `0` with a meaningful default for `status`
+FROM QueuedImage_old;
+
+-- Step 4: Drop the old table
+DROP TABLE QueuedImage_old;

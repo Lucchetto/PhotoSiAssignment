@@ -6,14 +6,15 @@ import kotlin.uuid.Uuid
 data class QueuedImageEntity @OptIn(ExperimentalUuidApi::class) constructor(
     val id: Uuid,
     val fileName: String,
+    val status: Status
 ) {
 
-    sealed class State {
+    sealed class Status {
 
-        data object Ready : State()
+        data object Ready : Status()
 
-        data object Uploading : State()
+        data object Uploading : Status()
 
-        data class Completed(val result: Result<String, Unit>) : State()
+        data class Completed(val result: Result<String, Unit>) : Status()
     }
 }

@@ -8,6 +8,7 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import com.photosi.assignment.data.mapper.QueuedImageMapper
 import com.photosi.assignment.db.QueuedImage
+import com.photosi.assignment.db.QueuedImageStatus
 import com.photosi.assignment.db.db.AppDatabase
 import com.photosi.assignment.domain.ImageQueueRepository
 import com.photosi.assignment.domain.entity.QueuedImageEntity
@@ -44,7 +45,7 @@ internal class ImageQueueRepositoryImpl(
     }
 
     private fun addToQueuedImages(id: Uuid, fileName: String): QueuedImageEntity {
-        val queuedImage = QueuedImage(id.toByteArray(), fileName)
+        val queuedImage = QueuedImage(id.toByteArray(), fileName, QueuedImageStatus.Ready, null)
 
         appDatabase.queuedImageQueries.insert(queuedImage)
 

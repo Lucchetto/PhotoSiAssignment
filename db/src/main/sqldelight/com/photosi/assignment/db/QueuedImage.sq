@@ -3,11 +3,12 @@ import com.photosi.assignment.db.QueuedImageStatus;
 CREATE TABLE QueuedImage (
     id BLOB PRIMARY KEY,
     fileName TEXT NOT NULL,
-    status INTEGER AS QueuedImageStatus
+    status INTEGER AS QueuedImageStatus NOT NULL,
+    resultUrl TEXT
 );
 
 insert:
-INSERT INTO QueuedImage(id, fileName)
+INSERT INTO QueuedImage(id, fileName, status, resultUrl)
 VALUES ?;
 
 selectAll:

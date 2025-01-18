@@ -142,7 +142,7 @@ private fun ImageQueueListPreview() = MaterialTheme {
         ImageQueueList(
             List(50) {
                 val uuid = Uuid.random()
-                QueuedImageEntity(uuid, "${uuid}.png")
+                QueuedImageEntity(uuid, "${uuid}.png", QueuedImageEntity.Status.Ready)
             },
             imageRequestProvider = {
                 ImageRequest.Builder(LocalPlatformContext.current)
