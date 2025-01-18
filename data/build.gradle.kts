@@ -16,6 +16,7 @@ android {
 
         buildConfigField("String", "PHOTOFORSE_BASE_URL", "\"https://api.photoforse.online/\"")
         buildConfigField("String", "PHOTOFORSE_API_KEY", "\"AIzaSyCccmdkjGe_9Yt-INL2rCJTNgoS4CXsRDc\"")
+        buildConfigField("String", "CATBOX_BASE_URL", "\"https://catbox.moe/\"")
     }
 
     buildFeatures {
@@ -46,6 +47,7 @@ dependencies {
     implementation(libs.koin.core)
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.kotlinx.serialization)
+    implementation(libs.converter.scalars)
     implementation(libs.kotlinx.serialization.json)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

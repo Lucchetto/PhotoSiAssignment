@@ -7,6 +7,7 @@ import okhttp3.OkHttpClient
 import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
+import retrofit2.converter.scalars.ScalarsConverterFactory
 
 internal val ApiModule = module {
     single {
@@ -26,5 +27,12 @@ internal val ApiModule = module {
             )
             .build()
             .create(PhotoforseApi::class.java)
+    }
+    single {
+        Retrofit.Builder()
+            .baseUrl(BuildConfig.CATBOX_BASE_URL)
+            .addConverterFactory(ScalarsConverterFactory.create())
+            .build()
+            .create(CatboxApi::class.java)
     }
 }
