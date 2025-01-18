@@ -1,3 +1,10 @@
 <resources>
+    <!-- Generic -->
     <string name="app_name">PhotoSì Assignment</string>
+    <string name="retry">Retry</string>
+
+    <!-- SelectCountriesScreen -->
+    <string name="select_countries_screen_title">Select your country</string>
+    <string name="select_countries_generic_error_message">Oops, something went wrong while loading the countries</string>
+    <string name="select_countries_network_error_message">You are offline. Please check your connection and try again</string>
 </resources>
