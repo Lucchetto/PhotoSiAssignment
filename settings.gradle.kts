@@ -23,3 +23,4 @@ rootProject.name = "PhotoSì Assignment"
 include(":app")
 include(":data")
 include(":domain")
+include(":db")

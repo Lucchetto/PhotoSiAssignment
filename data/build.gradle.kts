@@ -42,6 +42,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":db"))
     implementation(project(":domain"))
 
     implementation(libs.koin.core)
@@ -50,6 +51,8 @@ dependencies {
     implementation(libs.converter.scalars)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.androidx.documentfile)
+    implementation(libs.sqldelight.coroutines.extensions)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
 }

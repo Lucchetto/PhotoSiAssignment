@@ -1,11 +1,12 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.sqlidelight)
 }
 
 android {
-    namespace = "com.photosi.assignment.domain"
-    compileSdk = 35
+    namespace = "com.photosi.assignment.db"
+    compileSdk = 34
 
     defaultConfig {
         minSdk = 21
@@ -33,5 +34,14 @@ android {
 }
 
 dependencies {
-    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.koin.core)
+    implementation(libs.sqldelight.android.driver)
+}
+
+sqldelight {
+    databases {
+        create("AppDatabase") {
+            packageName.set(android.namespace + ".db")
+        }
+    }
 }

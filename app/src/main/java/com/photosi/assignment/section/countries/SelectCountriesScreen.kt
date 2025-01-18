@@ -47,6 +47,7 @@ import com.photosi.assignment.domain.entity.RepoApiResult
 import com.photosi.assignment.domain.entity.Result
 import com.photosi.assignment.navigation.AppRoute
 import com.photosi.assignment.ui.component.ErrorStateScreen
+import com.photosi.assignment.ui.component.FullScreenLoading
 import com.photosi.assignment.ui.theme.spacing
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -81,12 +82,7 @@ fun SelectCountriesScreen(
                 modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
                 contentPadding = padding,
             )
-        } ?: Box(
-            modifier = Modifier.padding(padding).fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator()
-        }
+        } ?: FullScreenLoading(modifier = Modifier.padding(padding))
     }
 }
 
@@ -132,7 +128,7 @@ private fun CountriesList(
         )
     }
     is Result.Success -> LazyColumn(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxSize(),
         contentPadding = contentPadding
     ) {
         items(countries.value) {

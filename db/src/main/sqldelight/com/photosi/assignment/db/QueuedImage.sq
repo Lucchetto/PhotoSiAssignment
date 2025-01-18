@@ -1,0 +1,11 @@
+CREATE TABLE QueuedImage (
+    id BLOB PRIMARY KEY,
+    fileName TEXT NOT NULL
+);
+
+insert:
+INSERT INTO QueuedImage(id, fileName)
+VALUES ?;
+
+selectAll:
+SELECT * FROM QueuedImage;
