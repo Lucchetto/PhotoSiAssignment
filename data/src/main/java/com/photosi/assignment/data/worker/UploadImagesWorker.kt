@@ -16,6 +16,7 @@ import com.photosi.assignment.domain.RemoteImagesRepository
 import com.photosi.assignment.domain.entity.QueuedImageEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlin.math.roundToInt
 import kotlin.uuid.ExperimentalUuidApi
 import com.photosi.assignment.domain.entity.Result as DomainResult
 
@@ -71,8 +72,12 @@ internal class UploadImagesWorker(
     private suspend fun uploadImages() = withContext(Dispatchers.IO) {
         val readyImages = imagesQueueRepository.value.listReadyImages()
 
-        readyImages.forEach {
-            uploadImage(it)
+        readyImages.forEachIndexed { index, image ->
+            notificationManager.notify(
+                PROGRESS_NOTIFICATION_ID,
+                progressNotificationBuilder.buildWithProgress(index, readyImages.size)
+            )
+            uploadImage(image)
         }
     }
 
@@ -102,15 +107,15 @@ internal class UploadImagesWorker(
     private companion object {
 
         private fun NotificationCompat.Builder.buildIndeterminateProgress(): Notification =
-            setProgress(1, 0, true).build()
+            setProgress(0, 0, true).build()
 
         private fun NotificationCompat.Builder.buildWithProgress(
             currentItem: Int,
             totalCount: Int
         ): Notification {
-            val progress = currentItem / totalCount
+            val progress = ((currentItem.toFloat()) / totalCount) * 100
 
-            setProgress(1, progress, false)
+            setProgress(100, progress.roundToInt(), false)
 
             return build()
         }

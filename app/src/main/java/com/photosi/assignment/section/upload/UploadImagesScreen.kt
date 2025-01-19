@@ -75,6 +75,8 @@ fun UploadImagesScreen(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    NotificationPermissionRequester()
+    
     Scaffold(
         topBar = {
             LargeTopAppBar(
