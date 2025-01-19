@@ -7,5 +7,5 @@ import org.koin.dsl.module
 internal val WorkerModule = module {
     single<WorkManager> { WorkManager.getInstance(get()) }
 
-    worker { UploadImagesWorker(get(), get(), inject(), inject()) }
+    worker { UploadImagesWorker(get(), get(), get(), inject(), inject()) }
 }

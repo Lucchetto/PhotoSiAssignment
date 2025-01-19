@@ -4,6 +4,7 @@ import com.photosi.assignment.data.mapper.CustomErrorMapper
 import com.photosi.assignment.domain.entity.RepoApiErrorEntity
 import com.photosi.assignment.domain.entity.RepoApiResult
 import com.photosi.assignment.domain.entity.Result
+import kotlinx.coroutines.CancellationException
 import java.net.ConnectException
 import java.net.NoRouteToHostException
 import java.net.SocketTimeoutException
@@ -20,6 +21,9 @@ internal object RepositoryHelper {
     ): RepoApiResult<T, CustomError> = try {
         Result.Success(apiCall())
     } catch (e: Exception) {
+        // Coroutines cancellation must not be suppressed
+        if (e is CancellationException) throw e
+
         val error = errorMapper.mapTo(e)?.let {
             RepoApiErrorEntity.Custom(it)
         } ?: when (e) {

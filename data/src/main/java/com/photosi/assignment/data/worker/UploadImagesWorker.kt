@@ -9,12 +9,15 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
+import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.photosi.assignment.data.R
 import com.photosi.assignment.domain.ImageQueueRepository
 import com.photosi.assignment.domain.RemoteImagesRepository
 import com.photosi.assignment.domain.entity.QueuedImageEntity
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
 import kotlin.uuid.ExperimentalUuidApi
@@ -23,6 +26,7 @@ import com.photosi.assignment.domain.entity.Result as DomainResult
 internal class UploadImagesWorker(
     appContext: Context,
     params: WorkerParameters,
+    workManager: WorkManager,
     private val imagesQueueRepository: Lazy<ImageQueueRepository>,
     private val remoteImagesRepository: Lazy<RemoteImagesRepository>
 ) : CoroutineWorker(appContext, params) {
@@ -31,8 +35,15 @@ internal class UploadImagesWorker(
     private val progressNotificationBuilder = NotificationCompat.Builder(appContext, PROGRESS_NOTIFICATION_CHANNEL_ID)
         .setOngoing(true)
         .setSmallIcon(R.drawable.outline_cloud_upload_24)
-        .setContentTitle(appContext.getString(R.string.upload_progress_notification_title))
-        .setTicker(appContext.getString(R.string.upload_progress_notification_title))
+        .setTitleAndTicker(appContext.getString(R.string.upload_progress_notification_title))
+        .launchLauncherActivityOnClick(appContext)
+        .addAction(
+            NotificationCompat.Action.Builder(
+                android.R.drawable.ic_delete,
+                appContext.getString(R.string.cancel_label),
+                workManager.createCancelPendingIntent(id)
+            ).build()
+        )
 
     override suspend fun doWork(): Result {
         // Prevent upload from being restarted on failure
@@ -42,9 +53,20 @@ internal class UploadImagesWorker(
 
         createProgressNotificationChannel()
         markAsForeground()
-        uploadImages()
 
-        return Result.success()
+        val readyImages = imagesQueueRepository.value.listReadyImages()
+        val successCount = uploadImages(readyImages)
+
+        currentCoroutineContext().ensureActive()
+
+        val failedCount = readyImages.size - successCount
+        createResultNotificationChannel()
+        notificationManager.notify(
+            RESULT_NOTIFICATION_ID,
+            buildResultNotification(successCount, failedCount)
+        )
+
+        return if (failedCount > 0) Result.failure() else Result.success()
     }
 
     private suspend fun markAsForeground() {
@@ -69,39 +91,84 @@ internal class UploadImagesWorker(
         notificationManager.createNotificationChannel(channel)
     }
 
-    private suspend fun uploadImages() = withContext(Dispatchers.IO) {
-        val readyImages = imagesQueueRepository.value.listReadyImages()
+    private fun createResultNotificationChannel() {
+        val channel = NotificationChannelCompat.Builder(
+            RESULT_NOTIFICATION_CHANNEL_ID,
+            NotificationManagerCompat.IMPORTANCE_LOW
+        ).setName(applicationContext.getString(R.string.upload_result_notification_channel_name)).build()
+
+        notificationManager.createNotificationChannel(channel)
+    }
+
+    private fun buildResultNotification(successCount: Int, failedCount: Int): Notification = with(applicationContext) {
+        val description = if (failedCount > 0) {
+            getString(R.string.upload_result_notification_failed_desc, successCount, failedCount)
+        } else {
+            getString(R.string.upload_result_notification_success_desc, successCount)
+        }
+
+        NotificationCompat.Builder(this, RESULT_NOTIFICATION_CHANNEL_ID)
+            .setSmallIcon(R.drawable.outline_cloud_upload_24)
+            .setTitleAndTicker(getString(R.string.upload_result_notification_title))
+            .setStyle(NotificationCompat.BigTextStyle().bigText(description))
+            .setContentText(description)
+            .launchLauncherActivityOnClick(this)
+            .build()
+    }
+
+    /**
+     * @return how many images were successfully uploaded
+     */
+    private suspend fun uploadImages(readyImages: List<QueuedImageEntity>): Int = withContext(Dispatchers.IO) {
+        var successImages = 0
 
         readyImages.forEachIndexed { index, image ->
+            ensureActive()
             notificationManager.notify(
                 PROGRESS_NOTIFICATION_ID,
-                progressNotificationBuilder.buildWithProgress(index, readyImages.size)
+                progressNotificationBuilder
+                    .buildWithProgress(applicationContext, index, readyImages.size)
             )
-            uploadImage(image)
+            if (uploadImage(image)) successImages++
         }
+
+        return@withContext successImages
     }
 
     /**
      * @return whether the image was successfully uploaded
      */
     @OptIn(ExperimentalUuidApi::class)
-    private suspend fun uploadImage(entity: QueuedImageEntity): Unit = with(imagesQueueRepository.value) {
+    private suspend fun uploadImage(entity: QueuedImageEntity): Boolean = with(imagesQueueRepository.value) {
         val file = getFileForQueuedImage(entity)
-        if (!file.isFile) updateImageStatus(
-            entity.id,
-            QueuedImageEntity.Status.Completed(DomainResult.Failure(Unit))
-        )
+        if (!file.isFile) {
+            updateImageStatus(
+                entity.id,
+                QueuedImageEntity.Status.Completed(DomainResult.Failure(Unit))
+            )
+            return@with false
+        }
 
         updateImageStatus(entity.id, QueuedImageEntity.Status.Uploading)
 
-        val finalStatus = when (val it = remoteImagesRepository.value.upload(file)) {
-            is com.photosi.assignment.domain.entity.Result.Failure ->
-                QueuedImageEntity.Status.Completed(DomainResult.Failure(Unit))
-            is com.photosi.assignment.domain.entity.Result.Success ->
-                QueuedImageEntity.Status.Completed(DomainResult.Success(it.value))
+        val finalStatus: DomainResult<String, Unit>
+        val success: Boolean
+
+        when (val it = remoteImagesRepository.value.upload(file)) {
+            is DomainResult.Failure -> {
+                finalStatus = DomainResult.Failure(Unit)
+                success = false
+            }
+            is DomainResult.Success -> {
+                finalStatus = DomainResult.Success(it.value)
+                success = true
+            }
         }
 
-        updateImageStatus(entity.id, finalStatus)
+        updateImageStatus(entity.id, QueuedImageEntity.Status.Completed(finalStatus))
+
+        // Return
+        success
     }
 
     private companion object {
@@ -110,17 +177,21 @@ internal class UploadImagesWorker(
             setProgress(0, 0, true).build()
 
         private fun NotificationCompat.Builder.buildWithProgress(
+            context: Context,
             currentItem: Int,
             totalCount: Int
         ): Notification {
             val progress = ((currentItem.toFloat()) / totalCount) * 100
 
             setProgress(100, progress.roundToInt(), false)
+            setBigContent(context.getString(R.string.upload_progress_notification_desc, currentItem, totalCount))
 
             return build()
         }
 
         const val PROGRESS_NOTIFICATION_CHANNEL_ID = "progress"
         const val PROGRESS_NOTIFICATION_ID = 1
+        const val RESULT_NOTIFICATION_CHANNEL_ID = "result"
+        const val RESULT_NOTIFICATION_ID = 69
     }
 }

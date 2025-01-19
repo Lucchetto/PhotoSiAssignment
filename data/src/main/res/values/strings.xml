@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="cancel_label">Cancel</string>
+
     <string name="upload_progress_notification_channel_name">Upload images progress</string>
     <string name="upload_progress_notification_title">Uploading your images…</string>
+    <string name="upload_progress_notification_desc">Uploading %1$d of %2$d images</string>
+
+    <string name="upload_result_notification_channel_name">Upload images result</string>
+    <string name="upload_result_notification_title">Images upload completed!</string>
+    <string name="upload_result_notification_success_desc">All %1$d images were uploaded successfully</string>
+    <string name="upload_result_notification_failed_desc">%1$d were uploaded successfully and %2$d failed</string>
 </resources>
