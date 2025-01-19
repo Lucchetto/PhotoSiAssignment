@@ -114,6 +114,7 @@ internal class UploadImagesWorker(
             .setStyle(NotificationCompat.BigTextStyle().bigText(description))
             .setContentText(description)
             .launchLauncherActivityOnClick(this)
+            .setAutoCancel(true)
             .build()
     }
 
