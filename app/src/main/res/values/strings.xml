@@ -2,6 +2,7 @@
     <!-- Generic -->
     <string name="app_name">PhotoSì Assignment</string>
     <string name="retry">Retry</string>
+    <string name="copy">Copy</string>
 
     <!-- SelectCountriesScreen -->
     <string name="select_countries_screen_title">Select your country</string>
@@ -12,4 +13,8 @@
     <string name="select_images_to_upload_title">Select the images</string>
     <string name="add_images_gallery_label">Add images from gallery</string>
     <string name="upload_label">Upload</string>
+    <string name="queued_label">Queued</string>
+    <string name="uploading_label">Uploading</string>
+    <string name="failed_label">Failed</string>
+    <string name="link_label">Link</string>
 </resources>
