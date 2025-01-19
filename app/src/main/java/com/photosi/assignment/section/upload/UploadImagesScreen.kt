@@ -47,6 +47,7 @@ import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -115,12 +116,10 @@ fun UploadImagesScreen(
         uiState.queue?.let { queue ->
             ImageQueueList(
                 queue = queue,
-                imageRequestProvider = remember {
-                    {
-                        ImageRequest.Builder(LocalPlatformContext.current)
-                            .data(viewModel.getFileForQueuedImage(it))
-                            .build()
-                    }
+                imageRequestProvider = {
+                    ImageRequest.Builder(LocalPlatformContext.current)
+                        .data(viewModel.getFileForQueuedImage(it))
+                        .build()
                 },
                 allowDelete = uiState.allowDeleteImages,
                 onDelete = viewModel::deleteImage,
@@ -214,10 +213,15 @@ private fun ImageQueueList(
     ) {
         items(queue, key = { it.id.toString() }) { image ->
             val swipeState = rememberSwipeToDeleteState()
+            val composedAllowDelete by remember {
+                derivedStateOf {
+                    draggingToDeleteAnimatingKey.let { it == null || it == image.id } && allowDelete
+                }
+            }
 
-            LaunchedEffect(draggingToDeleteAnimatingKey, allowDelete) {
+            LaunchedEffect(composedAllowDelete) {
                 // Dismiss current swipe to delete state if another item is being dragged or when delete is not allowed
-                if (draggingToDeleteAnimatingKey.let { it != null && it != image.id } || !allowDelete) {
+                if (!composedAllowDelete) {
                     coroutineScope.launch {
                         swipeState.animateTo(SwipeToDeleteState.Hidden)
                     }
@@ -225,12 +229,12 @@ private fun ImageQueueList(
             }
 
             QueuedImageItem(
-                image,
-                allowDelete = draggingToDeleteAnimatingKey.let { it == null || it == image.id } && allowDelete,
+                entity = image,
+                allowDelete = { composedAllowDelete },
                 onDelete = { onDelete(image) },
                 swipeState = swipeState,
-                onDrag = remember { { draggingToDeleteAnimatingKey = image.id } },
-                onRelease = remember { { draggingToDeleteAnimatingKey = null } },
+                onDrag = { draggingToDeleteAnimatingKey = image.id },
+                onRelease = { draggingToDeleteAnimatingKey = null },
                 imageRequestProvider = imageRequestProvider,
             )
         }
@@ -242,7 +246,7 @@ private fun ImageQueueList(
 private fun QueuedImageItem(
     entity: QueuedImageEntity,
     imageRequestProvider: @Composable (QueuedImageEntity) -> ImageRequest,
-    allowDelete: Boolean,
+    allowDelete: () -> Boolean,
     onDelete: () -> Unit,
     swipeState: AnchoredDraggableState<SwipeToDeleteState> = rememberSwipeToDeleteState(),
     onDrag: () -> Unit,
@@ -265,7 +269,9 @@ private fun QueuedImageItem(
         AsyncImage(
             model = imageRequestProvider(entity),
             contentDescription = null,
-            modifier = Modifier.size(80.dp).clip(MaterialTheme.shapes.medium),
+            modifier = Modifier
+                .size(80.dp)
+                .clip(MaterialTheme.shapes.medium),
             contentScale = ContentScale.Crop
         )
         Column(

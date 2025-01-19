@@ -89,7 +89,7 @@ fun SwipeToDeleteContainer(
     icon: @Composable BoxScope.() -> Unit = { SwipeToDeleteIcon() },
     onDrag: () -> Unit = {},
     onRelease: () -> Unit = {},
-    enabled: Boolean = true,
+    enabled: () -> Boolean = { true },
     content: @Composable BoxScope.() -> Unit,
 ) = Layout(
     content = {
@@ -104,7 +104,7 @@ fun SwipeToDeleteContainer(
                 change.consume()
                 // Dispatch drag event only if enabled and notify onDrag only if event has actually
                 // moved
-                if (enabled && state.dispatchRawDelta(dragAmount * dragEventMultiplier) != 0f) {
+                if (enabled() && state.dispatchRawDelta(dragAmount * dragEventMultiplier) != 0f) {
                     onDrag()
                 }
             }
@@ -138,7 +138,9 @@ fun SwipeToDeleteContainer(
             modifier = Modifier
                 .offset {
                     IntOffset(
-                        x = state.requireOffset().roundToInt(),
+                        x = state
+                            .requireOffset()
+                            .roundToInt(),
                         y = 0
                     )
                 }
@@ -205,7 +207,9 @@ private fun SwipeToDeleteContainerPreview() = PhotoSìAssignmentTheme {
             onDeleteConfirm = {},
             content = {
                 Box(
-                    modifier = Modifier.height(70.dp).background(MaterialTheme.colorScheme.background),
+                    modifier = Modifier
+                        .height(70.dp)
+                        .background(MaterialTheme.colorScheme.background),
                     contentAlignment = Alignment.CenterStart
                 ) {
                     Text("Swipe to delete", color = MaterialTheme.colorScheme.onBackground)
