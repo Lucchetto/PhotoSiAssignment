@@ -11,4 +11,5 @@
     <!-- UploadImagesScreen -->
     <string name="select_images_to_upload_title">Select the images</string>
     <string name="add_images_gallery_label">Add images from gallery</string>
+    <string name="upload_label">Upload</string>
 </resources>

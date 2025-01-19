@@ -11,5 +11,11 @@ insert:
 INSERT INTO QueuedImage(id, fileName, status, resultUrl)
 VALUES ?;
 
+selectAllReady:
+SELECT * FROM QueuedImage WHERE status = 0;
+
 selectAll:
 SELECT * FROM QueuedImage;
+
+updateStatus:
+UPDATE QueuedImage SET status = ?, resultUrl = ? WHERE id = ?;

@@ -11,6 +11,7 @@ import com.photosi.assignment.section.countries.SelectCountriesScreenModule
 import com.photosi.assignment.section.upload.UploadImagesScreenModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
+import org.koin.androidx.workmanager.koin.workManagerFactory
 import org.koin.core.context.startKoin
 
 class PhotosiApplication: Application(), SingletonImageLoader.Factory {
@@ -23,6 +24,8 @@ class PhotosiApplication: Application(), SingletonImageLoader.Factory {
             androidLogger()
             // Reference Android context
             androidContext(this@PhotosiApplication)
+            // setup a WorkManager instance
+            workManagerFactory()
             // Load modules
             modules(DataModule, SelectCountriesScreenModule, UploadImagesScreenModule)
         }

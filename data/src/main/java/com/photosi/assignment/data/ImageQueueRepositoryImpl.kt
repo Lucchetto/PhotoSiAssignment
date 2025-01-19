@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
+import com.photosi.assignment.data.mapper.QueuedImageEntityStatusMapper
 import com.photosi.assignment.data.mapper.QueuedImageMapper
 import com.photosi.assignment.db.QueuedImage
 import com.photosi.assignment.db.QueuedImageStatus
@@ -37,21 +38,19 @@ internal class ImageQueueRepositoryImpl(
         }
 
     override suspend fun addImages(uris: List<Uri>) = withContext(Dispatchers.IO) {
-        uris.mapNotNull {
-            val fileName = DocumentFile.fromSingleUri(application, it)?.name ?: return@mapNotNull null
+        uris.forEach {
+            val fileName = DocumentFile.fromSingleUri(application, it)?.name ?: return@forEach
             val id = Uuid.random()
 
-            if (!copyImageFile(id, it)) return@mapNotNull null
+            if (!copyImageFile(id, it)) return@forEach
             addToQueuedImages(id, fileName)
         }
     }
 
-    private fun addToQueuedImages(id: Uuid, fileName: String): QueuedImageEntity {
+    private fun addToQueuedImages(id: Uuid, fileName: String) {
         val queuedImage = QueuedImage(id.toByteArray(), fileName, QueuedImageStatus.Ready, null)
 
         appDatabase.queuedImageQueries.insert(queuedImage)
-
-        return QueuedImageMapper.mapFrom(queuedImage)
     }
 
     /**
@@ -68,6 +67,17 @@ internal class ImageQueueRepositoryImpl(
 
     override fun getFileForQueuedImage(entity: QueuedImageEntity): File =
         imagesDir.resolve(entity.id.toString())
+
+    override suspend fun listReadyImages() = appDatabase.queuedImageQueries
+        .selectAllReady()
+        .executeAsList()
+        .map(QueuedImageMapper::mapFrom)
+
+    override suspend fun updateImageStatus(id: Uuid, status: QueuedImageEntity.Status) {
+        val (dbStatus, resultUrl) = QueuedImageEntityStatusMapper.mapFrom(status)
+
+        appDatabase.queuedImageQueries.updateStatus(dbStatus, resultUrl, id.toByteArray())
+    }
 
     @VisibleForTesting
     companion object {

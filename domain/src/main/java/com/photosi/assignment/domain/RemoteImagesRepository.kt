@@ -3,7 +3,7 @@ package com.photosi.assignment.domain
 import com.photosi.assignment.domain.entity.RepoApiResult
 import java.io.File
 
-interface PicturesRepository {
+interface RemoteImagesRepository {
 
-    suspend fun uploadPicture(file: File): RepoApiResult<String, Nothing>
+    suspend fun upload(file: File): RepoApiResult<String, Nothing>
 }

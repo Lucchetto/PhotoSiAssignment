@@ -52,6 +52,8 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.documentfile)
     implementation(libs.sqldelight.coroutines.extensions)
+    implementation(libs.work.runtime.ktx)
+    implementation(libs.koin.androidx.workmanager)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
 }

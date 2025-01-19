@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upload_progress_notification_channel_name">Upload images progress</string>
+    <string name="upload_progress_notification_title">Uploading your images…</string>
+</resources>
