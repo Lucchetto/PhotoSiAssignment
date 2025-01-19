@@ -78,7 +78,7 @@ fun UploadImagesScreen(
     Scaffold(
         topBar = {
             LargeTopAppBar(
-                title = { Text(stringResource(R.string.select_images_to_upload_title)) },
+                title = { Text(stringResource(R.string.upload_images_screen_title)) },
                 scrollBehavior = scrollBehavior
             )
         },
@@ -101,7 +101,7 @@ fun UploadImagesScreen(
                         contentDescription = stringResource(R.string.add_images_gallery_label)
                     )
                 }
-                if (uiState.queue?.isNotEmpty() == true) {
+                if (uiState.canUpload) {
                     Spacer(modifier = Modifier.weight(1f))
                     ExtendedFloatingActionButton(
                         text = { Text(stringResource(R.string.upload_label)) },
