@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hours_template">%1$dh</string>
+    <string name="minutes_template">%1$dm</string>
+    <string name="seconds_template">%1$ds</string>
+</resources>

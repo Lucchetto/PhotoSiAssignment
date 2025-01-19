@@ -4,6 +4,7 @@ import android.app.Notification
 import android.content.Context
 import android.content.pm.ServiceInfo
 import android.os.Build
+import android.os.SystemClock
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -12,14 +13,17 @@ import androidx.work.ForegroundInfo
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.photosi.assignment.data.R
+import com.photosi.assignment.data.util.TimeHelper
 import com.photosi.assignment.domain.ImageQueueRepository
 import com.photosi.assignment.domain.RemoteImagesRepository
 import com.photosi.assignment.domain.entity.QueuedImageEntity
+import com.photosi.assignment.time.TimeFormatters
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
+import java.io.File
 import kotlin.math.roundToInt
 import kotlin.uuid.ExperimentalUuidApi
 import com.photosi.assignment.domain.entity.Result as DomainResult
@@ -123,15 +127,30 @@ internal class UploadImagesWorker(
      */
     private suspend fun uploadImages(readyImages: List<QueuedImageEntity>): Int = withContext(Dispatchers.IO) {
         var successImages = 0
+        val readyImagesAndFiles = readyImages.map {
+            it to imagesQueueRepository.value.getFileForQueuedImage(it)
+        }
+        var uploadSizeLeft = readyImagesAndFiles.sumOf { it.second.length() }
+        var estimatedRemainingTime: Long? = null
 
-        readyImages.forEachIndexed { index, image ->
+        readyImagesAndFiles.forEachIndexed { index, (image, file) ->
             ensureActive()
             notificationManager.notify(
                 PROGRESS_NOTIFICATION_ID,
                 progressNotificationBuilder
-                    .buildWithProgress(applicationContext, index, readyImages.size)
+                    .buildWithProgress(applicationContext, index, readyImages.size, estimatedRemainingTime)
             )
-            if (uploadImage(image)) successImages++
+
+            val startTime = SystemClock.elapsedRealtime()
+            if (uploadImage(image, file)) {
+                val fileSize = file.length()
+                uploadSizeLeft -= fileSize
+                val uploadTime = SystemClock.elapsedRealtime() - startTime
+                estimatedRemainingTime =
+                    TimeHelper.calculateRemainingTime(fileSize, uploadTime, uploadSizeLeft)
+
+                successImages++
+            }
         }
 
         return@withContext successImages
@@ -141,11 +160,13 @@ internal class UploadImagesWorker(
      * @return whether the image was successfully uploaded
      */
     @OptIn(ExperimentalUuidApi::class)
-    private suspend fun uploadImage(entity: QueuedImageEntity): Boolean = with(imagesQueueRepository.value) {
-        val file = getFileForQueuedImage(entity)
+    private suspend fun uploadImage(
+        image: QueuedImageEntity,
+        file: File
+    ): Boolean = with(imagesQueueRepository.value) {
         if (!file.isFile) {
             updateImageStatus(
-                entity.id,
+                image.id,
                 QueuedImageEntity.Status.Completed(DomainResult.Failure(Unit))
             )
             return@with false
@@ -155,7 +176,7 @@ internal class UploadImagesWorker(
         val success: Boolean
 
         try {
-            updateImageStatus(entity.id, QueuedImageEntity.Status.Uploading)
+            updateImageStatus(image.id, QueuedImageEntity.Status.Uploading)
 
             when (val it = remoteImagesRepository.value.upload(file)) {
                 is DomainResult.Failure -> {
@@ -169,11 +190,11 @@ internal class UploadImagesWorker(
             }
         } catch (e: CancellationException) {
             // Restore original status if work is being cancelled
-            updateImageStatus(entity.id, QueuedImageEntity.Status.Ready)
+            updateImageStatus(image.id, QueuedImageEntity.Status.Ready)
             throw e
         }
 
-        updateImageStatus(entity.id, QueuedImageEntity.Status.Completed(finalStatus))
+        updateImageStatus(image.id, QueuedImageEntity.Status.Completed(finalStatus))
 
         // Return
         success
@@ -187,12 +208,24 @@ internal class UploadImagesWorker(
         private fun NotificationCompat.Builder.buildWithProgress(
             context: Context,
             currentItem: Int,
-            totalCount: Int
+            totalCount: Int,
+            estimatedRemainingTime: Long?
         ): Notification {
             val progress = ((currentItem.toFloat()) / totalCount) * 100
+            val content = buildString {
+                append(context.getString(R.string.upload_progress_notification_desc_image_count, currentItem, totalCount))
+                estimatedRemainingTime?.let {
+                    append("\n")
+                    append(
+                        context.getString(
+                            R.string.upload_progress_notification_desc_estimated_time,
+                            TimeFormatters.formatCountdown(context, it)
+                        )
+                    )
+                }
+            }
 
-            setProgress(100, progress.roundToInt(), false)
-            setBigContent(context.getString(R.string.upload_progress_notification_desc, currentItem, totalCount))
+            setProgress(100, progress.roundToInt(), false).setBigContent(content)
 
             return build()
         }

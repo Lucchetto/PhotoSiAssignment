@@ -44,6 +44,7 @@ android {
 dependencies {
     implementation(project(":db"))
     implementation(project(":domain"))
+    implementation(project(":time-utils"))
 
     implementation(libs.koin.core)
     implementation(libs.retrofit)

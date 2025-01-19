@@ -4,7 +4,8 @@
 
     <string name="upload_progress_notification_channel_name">Upload images progress</string>
     <string name="upload_progress_notification_title">Uploading your images…</string>
-    <string name="upload_progress_notification_desc">Uploading %1$d of %2$d images</string>
+    <string name="upload_progress_notification_desc_image_count">Uploading %1$d of %2$d images</string>
+    <string name="upload_progress_notification_desc_estimated_time">Estimated remaining time: %1$s</string>
 
     <string name="upload_result_notification_channel_name">Upload images result</string>
     <string name="upload_result_notification_title">Images upload completed!</string>
