@@ -7,6 +7,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.AnchoredDraggableState
+import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -42,8 +46,12 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -67,10 +75,14 @@ import com.photosi.assignment.R
 import com.photosi.assignment.domain.entity.QueuedImageEntity
 import com.photosi.assignment.domain.entity.Result
 import com.photosi.assignment.ui.component.FullScreenLoading
+import com.photosi.assignment.ui.component.SwipeToDeleteContainer
+import com.photosi.assignment.ui.component.SwipeToDeleteState
+import com.photosi.assignment.ui.component.rememberSwipeToDeleteState
 import com.photosi.assignment.ui.theme.PhotoSìAssignmentTheme
 import com.photosi.assignment.ui.theme.spacing
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.launch
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -110,6 +122,8 @@ fun UploadImagesScreen(
                             .build()
                     }
                 },
+                allowDelete = uiState.allowDeleteImages,
+                onDelete = viewModel::deleteImage,
                 modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
                 contentPadding = padding
             )
@@ -181,45 +195,85 @@ private fun BottomBar(
     }
 }
 
-@OptIn(ExperimentalUuidApi::class)
+@OptIn(ExperimentalUuidApi::class, ExperimentalFoundationApi::class)
 @Composable
 private fun ImageQueueList(
     queue: ImmutableList<QueuedImageEntity>,
     imageRequestProvider: @Composable (QueuedImageEntity) -> ImageRequest,
+    allowDelete: Boolean,
+    onDelete: (QueuedImageEntity) -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues()
-) = LazyColumn(
-    modifier = modifier.fillMaxSize(),
-    contentPadding = contentPadding
 ) {
-    items(queue, key = { it.id.toByteArray() }) {
-        QueuedImageItem(
-            it,
-            imageRequestProvider = imageRequestProvider,
-        )
+    var draggingToDeleteAnimatingKey by remember { mutableStateOf<Uuid?>(null) }
+    val coroutineScope = rememberCoroutineScope()
+
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        contentPadding = contentPadding
+    ) {
+        items(queue, key = { it.id.toString() }) { image ->
+            val swipeState = rememberSwipeToDeleteState()
+
+            LaunchedEffect(draggingToDeleteAnimatingKey, allowDelete) {
+                // Dismiss current swipe to delete state if another item is being dragged or when delete is not allowed
+                if (draggingToDeleteAnimatingKey.let { it != null && it != image.id } || !allowDelete) {
+                    coroutineScope.launch {
+                        swipeState.animateTo(SwipeToDeleteState.Hidden)
+                    }
+                }
+            }
+
+            QueuedImageItem(
+                image,
+                allowDelete = draggingToDeleteAnimatingKey.let { it == null || it == image.id } && allowDelete,
+                onDelete = { onDelete(image) },
+                swipeState = swipeState,
+                onDrag = remember { { draggingToDeleteAnimatingKey = image.id } },
+                onRelease = remember { { draggingToDeleteAnimatingKey = null } },
+                imageRequestProvider = imageRequestProvider,
+            )
+        }
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun QueuedImageItem(
     entity: QueuedImageEntity,
     imageRequestProvider: @Composable (QueuedImageEntity) -> ImageRequest,
+    allowDelete: Boolean,
+    onDelete: () -> Unit,
+    swipeState: AnchoredDraggableState<SwipeToDeleteState> = rememberSwipeToDeleteState(),
+    onDrag: () -> Unit,
+    onRelease: () -> Unit,
     modifier: Modifier = Modifier,
-) = Row(
-    modifier = modifier.fillMaxWidth().padding(MaterialTheme.spacing.level5),
-    horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.level4),
+) = SwipeToDeleteContainer(
+    onDeleteConfirm = onDelete,
+    state = swipeState,
+    onDrag = onDrag,
+    onRelease = onRelease,
+    enabled = allowDelete,
 ) {
-    AsyncImage(
-        model = imageRequestProvider(entity),
-        contentDescription = null,
-        modifier = Modifier.size(80.dp).clip(MaterialTheme.shapes.medium),
-        contentScale = ContentScale.Crop
-    )
-    Column(
-        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.level3)
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(MaterialTheme.spacing.level5),
+        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.level4),
     ) {
-        Text(entity.fileName)
-        QueuedImageStatus(entity.status)
+        AsyncImage(
+            model = imageRequestProvider(entity),
+            contentDescription = null,
+            modifier = Modifier.size(80.dp).clip(MaterialTheme.shapes.medium),
+            contentScale = ContentScale.Crop
+        )
+        Column(
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.level3)
+        ) {
+            Text(entity.fileName)
+            QueuedImageStatus(entity.status)
+        }
     }
 }
 
@@ -336,6 +390,8 @@ private fun ImageQueueListPreview() = PhotoSìAssignmentTheme {
                     .data(R.drawable.ic_launcher_foreground)
                     .build()
             },
+            allowDelete = true,
+            onDelete = {},
             modifier = Modifier.padding(it)
         )
     }

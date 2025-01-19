@@ -3,6 +3,7 @@
     <string name="app_name">PhotoSì Assignment</string>
     <string name="retry">Retry</string>
     <string name="copy">Copy</string>
+    <string name="delete">Delete</string>
 
     <!-- SelectCountriesScreen -->
     <string name="select_countries_screen_title">Select your country</string>

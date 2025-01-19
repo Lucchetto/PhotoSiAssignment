@@ -79,6 +79,10 @@ internal class ImageQueueRepositoryImpl(
         appDatabase.queuedImageQueries.updateStatus(dbStatus, resultUrl, id.toByteArray())
     }
 
+    override suspend fun deleteImageById(id: Uuid) = withContext(Dispatchers.IO) {
+        appDatabase.queuedImageQueries.deleteById(id.toByteArray())
+    }
+
     @VisibleForTesting
     companion object {
 

@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlin.uuid.ExperimentalUuidApi
 
 class UploadImagesViewModel(
     private val imageQueueRepository: ImageQueueRepository,
@@ -45,4 +46,11 @@ class UploadImagesViewModel(
 
     fun getFileForQueuedImage(entity: QueuedImageEntity) =
         imageQueueRepository.getFileForQueuedImage(entity)
+
+    @OptIn(ExperimentalUuidApi::class)
+    fun deleteImage(entity: QueuedImageEntity) {
+        viewModelScope.launch {
+            imageQueueRepository.deleteImageById(entity.id)
+        }
+    }
 }

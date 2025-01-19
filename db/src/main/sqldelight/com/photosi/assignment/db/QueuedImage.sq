@@ -19,3 +19,6 @@ SELECT * FROM QueuedImage;
 
 updateStatus:
 UPDATE QueuedImage SET status = ?, resultUrl = ? WHERE id = ?;
+
+deleteById:
+DELETE FROM QueuedImage WHERE id = ?;

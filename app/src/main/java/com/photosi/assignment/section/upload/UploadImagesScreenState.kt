@@ -18,6 +18,9 @@ data class UploadImagesScreenState(
         else -> null
     }
 
+    val allowDeleteImages = workerStatus is UploadImagesWorkerStatusEntity.Completed
+            || workerStatus == null
+
     enum class FabAction {
         Upload,
         CancelUpload
