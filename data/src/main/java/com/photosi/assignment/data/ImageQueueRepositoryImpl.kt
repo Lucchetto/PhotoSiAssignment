@@ -80,6 +80,7 @@ internal class ImageQueueRepositoryImpl(
     }
 
     override suspend fun deleteImageById(id: Uuid) = withContext(Dispatchers.IO) {
+        imagesDir.resolve(id.toString())
         appDatabase.queuedImageQueries.deleteById(id.toByteArray())
     }
 
