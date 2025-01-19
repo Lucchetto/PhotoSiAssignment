@@ -12,7 +12,7 @@ internal object QueuedImageMapper {
     @OptIn(ExperimentalUuidApi::class)
     fun mapFrom(from: QueuedImage) = QueuedImageEntity(
         id = Uuid.fromByteArray(from.id),
-        fileName = from.fileName,
+        originalFileName = from.fileName,
         status = when (from.status) {
             QueuedImageStatus.Ready -> QueuedImageEntity.Status.Ready
             QueuedImageStatus.Uploading -> QueuedImageEntity.Status.Uploading

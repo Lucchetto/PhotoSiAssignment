@@ -183,7 +183,7 @@ internal class UploadImagesWorker(
         try {
             updateImageStatus(image.id, QueuedImageEntity.Status.Uploading)
 
-            when (val it = remoteImagesRepository.value.upload(file)) {
+            when (val it = remoteImagesRepository.value.upload(file, image.originalFileName)) {
                 is DomainResult.Failure -> {
                     finalStatus = DomainResult.Failure(Unit)
                     success = false

@@ -5,5 +5,5 @@ import java.io.File
 
 interface RemoteImagesRepository {
 
-    suspend fun upload(file: File): RepoApiResult<String, Nothing>
+    suspend fun upload(file: File, customFileName: String? = null): RepoApiResult<String, Nothing>
 }

@@ -12,7 +12,7 @@ internal class RemoteImagesRepositoryImpl(
     private val catboxApi: CatboxApi
 ): RemoteImagesRepository {
 
-    override suspend fun upload(file: File) = handleApiCall(StubCustomErrorMapper) {
+    override suspend fun upload(file: File, customFileName: String?) = handleApiCall(StubCustomErrorMapper) {
         /**
          * See documentation at [https://catbox.moe/tools.php](https://catbox.moe/tools.php)
          */
@@ -21,7 +21,7 @@ internal class RemoteImagesRepositoryImpl(
             .addFormDataPart("reqtype", "fileupload")
             .addFormDataPart(
                 "fileToUpload",
-                file.name,
+                customFileName ?: file.name,
                 RequestBody.create(null, file)
             )
             .build()

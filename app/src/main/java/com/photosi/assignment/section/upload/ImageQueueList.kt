@@ -147,7 +147,7 @@ private fun QueuedImageItem(
         Column(
             verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.level3)
         ) {
-            Text(entity.fileName)
+            Text(entity.originalFileName)
             QueuedImageStatus(entity.status)
         }
     }
@@ -235,14 +235,14 @@ private fun ImageQueueListPreview() = PhotoSìAssignmentTheme {
                 add(
                     QueuedImageEntity(
                         id = uuid,
-                        fileName = "${uuid}.jpg",
+                        originalFileName = "${uuid}.jpg",
                         status = QueuedImageEntity.Status.Completed(Result.Failure(Unit))
                     )
                 )
                 add(
                     QueuedImageEntity(
                         id = uuid,
-                        fileName = "${uuid}.jpg",
+                        originalFileName = "${uuid}.jpg",
                         status = QueuedImageEntity.Status.Completed(Result.Success("https://example.com"))
                     )
                 )

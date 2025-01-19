@@ -5,7 +5,7 @@ import kotlin.uuid.Uuid
 
 data class QueuedImageEntity @OptIn(ExperimentalUuidApi::class) constructor(
     val id: Uuid,
-    val fileName: String,
+    val originalFileName: String,
     val status: Status
 ) {
 

@@ -30,7 +30,7 @@ class QueuedImageMapperTest {
         // Then
         val expected = QueuedImageEntity(
             id = id,
-            fileName = "test_image.jpg",
+            originalFileName = "test_image.jpg",
             status = QueuedImageEntity.Status.Ready
         )
         assertEquals(expected, result)
@@ -53,7 +53,7 @@ class QueuedImageMapperTest {
         // Then
         val expected = QueuedImageEntity(
             id = id,
-            fileName = "test_image.jpg",
+            originalFileName = "test_image.jpg",
             status = QueuedImageEntity.Status.Uploading
         )
         assertEquals(expected, result)
@@ -76,7 +76,7 @@ class QueuedImageMapperTest {
         // Then
         val expected = QueuedImageEntity(
             id = id,
-            fileName = "test_image.jpg",
+            originalFileName = "test_image.jpg",
             status = QueuedImageEntity.Status.Completed(
                 Result.Success("http://example.com/result.jpg")
             )
@@ -120,7 +120,7 @@ class QueuedImageMapperTest {
         // Then
         val expected = QueuedImageEntity(
             id = id,
-            fileName = "test_image.jpg",
+            originalFileName = "test_image.jpg",
             status = QueuedImageEntity.Status.Completed(Result.Failure(Unit))
         )
         assertEquals(expected, result)
