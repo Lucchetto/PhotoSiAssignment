@@ -44,6 +44,7 @@ import com.photosi.assignment.domain.entity.Result
 import com.photosi.assignment.navigation.AppRoute
 import com.photosi.assignment.ui.component.ErrorStateScreen
 import com.photosi.assignment.ui.component.FullScreenLoading
+import com.photosi.assignment.ui.theme.PhotoSìAssignmentTheme
 import com.photosi.assignment.ui.theme.spacing
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
@@ -213,7 +214,7 @@ private class CountriesListPreviewParamProvider : PreviewParameterProvider<RepoA
 @Composable
 private fun CountriesListPreview(
     @PreviewParameter(CountriesListPreviewParamProvider::class) countries: RepoApiResult<ImmutableList<CountryEntity>, Nothing>
-) = MaterialTheme {
+) = PhotoSìAssignmentTheme {
     Scaffold {
         CountriesList(
             countries = countries,

@@ -59,6 +59,7 @@ import com.photosi.assignment.R
 import com.photosi.assignment.domain.entity.QueuedImageEntity
 import com.photosi.assignment.domain.entity.Result
 import com.photosi.assignment.ui.component.FullScreenLoading
+import com.photosi.assignment.ui.theme.PhotoSìAssignmentTheme
 import com.photosi.assignment.ui.theme.spacing
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
@@ -241,7 +242,7 @@ private fun IconText(
 @OptIn(ExperimentalUuidApi::class)
 @PreviewLightDark
 @Composable
-private fun ImageQueueListPreview() = MaterialTheme {
+private fun ImageQueueListPreview() = PhotoSìAssignmentTheme {
     Scaffold {
         ImageQueueList(
             buildList {
