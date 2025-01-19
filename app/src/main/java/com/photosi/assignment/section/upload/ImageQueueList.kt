@@ -147,7 +147,7 @@ private fun QueuedImageItem(
         Column(
             verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.level3)
         ) {
-            Text(entity.originalFileName)
+            Text(entity.originalFileName, style = MaterialTheme.typography.titleMedium)
             QueuedImageStatus(entity.status)
         }
     }
@@ -225,27 +225,33 @@ private fun IconText(
 @PreviewLightDark
 @Composable
 private fun ImageQueueListPreview() = PhotoSìAssignmentTheme {
-    Scaffold {
+    Scaffold { padding ->
         ImageQueueList(
             buildList {
-                val uuid = Uuid.random()
-
-                add(QueuedImageEntity(uuid, "${uuid}.jpg", QueuedImageEntity.Status.Ready))
-                add(QueuedImageEntity(uuid, "${uuid}.jpg", QueuedImageEntity.Status.Uploading))
-                add(
-                    QueuedImageEntity(
-                        id = uuid,
-                        originalFileName = "${uuid}.jpg",
-                        status = QueuedImageEntity.Status.Completed(Result.Failure(Unit))
+                Uuid.random().let {
+                    QueuedImageEntity(it, "${it}.jpg", QueuedImageEntity.Status.Ready)
+                }
+                Uuid.random().let {
+                    QueuedImageEntity(it, "${it}.jpg", QueuedImageEntity.Status.Uploading)
+                }
+                Uuid.random().let {
+                    add(
+                        QueuedImageEntity(
+                            id = it,
+                            originalFileName = "${it}.jpg",
+                            status = QueuedImageEntity.Status.Completed(Result.Failure(Unit))
+                        )
                     )
-                )
-                add(
-                    QueuedImageEntity(
-                        id = uuid,
-                        originalFileName = "${uuid}.jpg",
-                        status = QueuedImageEntity.Status.Completed(Result.Success("https://example.com"))
+                }
+                Uuid.random().let {
+                    add(
+                        QueuedImageEntity(
+                            id = it,
+                            originalFileName = "${it}.jpg",
+                            status = QueuedImageEntity.Status.Completed(Result.Success("https://example.com"))
+                        )
                     )
-                )
+                }
             }.toImmutableList(),
             imageRequestProvider = {
                 ImageRequest.Builder(LocalPlatformContext.current)
@@ -254,7 +260,7 @@ private fun ImageQueueListPreview() = PhotoSìAssignmentTheme {
             },
             allowDelete = true,
             onDelete = {},
-            modifier = Modifier.padding(it)
+            modifier = Modifier.padding(padding)
         )
     }
 }
