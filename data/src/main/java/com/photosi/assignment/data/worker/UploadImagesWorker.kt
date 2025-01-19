@@ -13,9 +13,11 @@ import androidx.work.ForegroundInfo
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.photosi.assignment.data.R
+import com.photosi.assignment.data.mapper.UploadImagesWorkerStatusEntityRunningMapper
 import com.photosi.assignment.data.util.TimeHelper
 import com.photosi.assignment.domain.ImageQueueRepository
 import com.photosi.assignment.domain.RemoteImagesRepository
+import com.photosi.assignment.domain.UploadImagesWorkerStatusEntity
 import com.photosi.assignment.domain.entity.QueuedImageEntity
 import com.photosi.assignment.time.TimeFormatters
 import kotlinx.coroutines.CancellationException
@@ -135,10 +137,13 @@ internal class UploadImagesWorker(
 
         readyImagesAndFiles.forEachIndexed { index, (image, file) ->
             ensureActive()
+
+            val status = UploadImagesWorkerStatusEntity.Running(index, readyImages.size, estimatedRemainingTime)
+
+            setProgress(UploadImagesWorkerStatusEntityRunningMapper.mapFrom(status))
             notificationManager.notify(
                 PROGRESS_NOTIFICATION_ID,
-                progressNotificationBuilder
-                    .buildWithProgress(applicationContext, index, readyImages.size, estimatedRemainingTime)
+                progressNotificationBuilder.buildWithRunningStatus(applicationContext, status)
             )
 
             val startTime = SystemClock.elapsedRealtime()
@@ -205,15 +210,13 @@ internal class UploadImagesWorker(
         private fun NotificationCompat.Builder.buildIndeterminateProgress(): Notification =
             setProgress(0, 0, true).build()
 
-        private fun NotificationCompat.Builder.buildWithProgress(
+        private fun NotificationCompat.Builder.buildWithRunningStatus(
             context: Context,
-            currentItem: Int,
-            totalCount: Int,
-            estimatedRemainingTime: Long?
-        ): Notification {
+            status: UploadImagesWorkerStatusEntity.Running,
+        ): Notification = with(status) {
             val progress = ((currentItem.toFloat()) / totalCount) * 100
             val content = buildString {
-                append(context.getString(R.string.upload_progress_notification_desc_image_count, currentItem, totalCount))
+                append(context.getString(R.string.upload_progress_notification_desc_image_count, currentItem + 1, totalCount))
                 estimatedRemainingTime?.let {
                     append("\n")
                     append(
