@@ -15,6 +15,7 @@ import com.photosi.assignment.data.R
 import com.photosi.assignment.domain.ImageQueueRepository
 import com.photosi.assignment.domain.RemoteImagesRepository
 import com.photosi.assignment.domain.entity.QueuedImageEntity
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -149,20 +150,26 @@ internal class UploadImagesWorker(
             return@with false
         }
 
-        updateImageStatus(entity.id, QueuedImageEntity.Status.Uploading)
-
         val finalStatus: DomainResult<String, Unit>
         val success: Boolean
 
-        when (val it = remoteImagesRepository.value.upload(file)) {
-            is DomainResult.Failure -> {
-                finalStatus = DomainResult.Failure(Unit)
-                success = false
+        try {
+            updateImageStatus(entity.id, QueuedImageEntity.Status.Uploading)
+
+            when (val it = remoteImagesRepository.value.upload(file)) {
+                is DomainResult.Failure -> {
+                    finalStatus = DomainResult.Failure(Unit)
+                    success = false
+                }
+                is DomainResult.Success -> {
+                    finalStatus = DomainResult.Success(it.value)
+                    success = true
+                }
             }
-            is DomainResult.Success -> {
-                finalStatus = DomainResult.Success(it.value)
-                success = true
-            }
+        } catch (e: CancellationException) {
+            // Restore original status if work is being cancelled
+            updateImageStatus(entity.id, QueuedImageEntity.Status.Ready)
+            throw e
         }
 
         updateImageStatus(entity.id, QueuedImageEntity.Status.Completed(finalStatus))

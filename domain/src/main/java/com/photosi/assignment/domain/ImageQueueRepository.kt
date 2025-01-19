@@ -19,5 +19,5 @@ interface ImageQueueRepository {
     suspend fun listReadyImages(): List<QueuedImageEntity>
 
     @OptIn(ExperimentalUuidApi::class)
-    suspend fun updateImageStatus(id: Uuid, status: QueuedImageEntity.Status)
+    fun updateImageStatus(id: Uuid, status: QueuedImageEntity.Status)
 }

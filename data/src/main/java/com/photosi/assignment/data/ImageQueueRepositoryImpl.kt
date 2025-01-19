@@ -73,7 +73,7 @@ internal class ImageQueueRepositoryImpl(
         .executeAsList()
         .map(QueuedImageMapper::mapFrom)
 
-    override suspend fun updateImageStatus(id: Uuid, status: QueuedImageEntity.Status) {
+    override fun updateImageStatus(id: Uuid, status: QueuedImageEntity.Status) {
         val (dbStatus, resultUrl) = QueuedImageEntityStatusMapper.mapFrom(status)
 
         appDatabase.queuedImageQueries.updateStatus(dbStatus, resultUrl, id.toByteArray())
