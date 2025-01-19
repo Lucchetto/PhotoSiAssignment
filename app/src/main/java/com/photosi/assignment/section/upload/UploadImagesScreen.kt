@@ -145,6 +145,12 @@ private fun BottomBar(
             pendingPhotoUri = null
         }
         val context = LocalContext.current
+        val permissionsRequester = rememberStoragePermissionRequester {
+            context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, ContentValues())?.let {
+                pendingPhotoUri = it
+                cameraLauncher.launch(it)
+            }
+        }
 
         IconButton(
             onClick = {
@@ -159,12 +165,7 @@ private fun BottomBar(
             )
         }
         IconButton(
-            onClick = {
-                context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, ContentValues())?.let {
-                    pendingPhotoUri = it
-                    cameraLauncher.launch(it)
-                }
-            }
+            onClick = permissionsRequester::requestIfNecessary
         ) {
             Icon(
                 Icons.Outlined.CameraAlt,
