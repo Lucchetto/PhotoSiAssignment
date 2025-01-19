@@ -20,7 +20,15 @@ interface CameraPermissionsRequester {
     fun requestIfNecessary()
 }
 
-private class CameraPermissionsRequesterImpl(
+private class Api29CameraPermissionsRequesterImpl(
+    private val onGranted: () -> Unit
+): CameraPermissionsRequester {
+
+    // We use scoped storage on Android 10 and above
+    override fun requestIfNecessary() = onGranted()
+}
+
+private class LegacyCameraPermissionsRequesterImpl(
     private val activity: Activity,
     private val launcher: ManagedActivityResultLauncher<String, Boolean>,
     private val onGranted: () -> Unit,
@@ -28,15 +36,12 @@ private class CameraPermissionsRequesterImpl(
 
     override fun requestIfNecessary() {
         when {
-            // We use scoped storage on Android 10 and above
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> onGranted()
             ContextCompat.checkSelfPermission(
                 activity,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE
             ) == PackageManager.PERMISSION_GRANTED -> onGranted()
             ActivityCompat.shouldShowRequestPermissionRationale(
                 activity, Manifest.permission.WRITE_EXTERNAL_STORAGE
-
             ) -> Toast.makeText(
                 activity,
                 activity.getString(R.string.write_storage_rationale_desc),
@@ -49,19 +54,23 @@ private class CameraPermissionsRequesterImpl(
 
 @Composable
 fun rememberStoragePermissionRequester(onGranted: () -> Unit): CameraPermissionsRequester {
-    val activity = requireNotNull(LocalActivity.current)
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { success ->
-        if (success) {
-            onGranted()
-        } else {
-            Toast.makeText(
-                activity,
-                activity.getString(R.string.write_storage_denied_desc),
-                Toast.LENGTH_LONG
-            ).show()
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        remember(onGranted) { Api29CameraPermissionsRequesterImpl(onGranted) }
+    } else {
+        val activity = requireNotNull(LocalActivity.current)
+        val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { success ->
+            if (success) {
+                onGranted()
+            } else {
+                Toast.makeText(
+                    activity,
+                    activity.getString(R.string.write_storage_denied_desc),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
         }
-    }
-    return remember(activity, launcher) {
-        CameraPermissionsRequesterImpl(activity, launcher, onGranted)
+        remember(activity, launcher, onGranted) {
+            LegacyCameraPermissionsRequesterImpl(activity, launcher, onGranted)
+        }
     }
 }

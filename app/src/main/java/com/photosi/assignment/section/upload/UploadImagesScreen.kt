@@ -132,85 +132,87 @@ private fun BottomBar(
         }
     }
 
-    BottomAppBar {
-        val photoPicker = rememberLauncherForActivityResult(
-            ActivityResultContracts.PickMultipleVisualMedia(),
-            onPhotoPicked
-        )
-        var pendingPhotoUri by remember { mutableStateOf<Uri?>(null) }
-        val cameraLauncher = rememberLauncherForActivityResult(
-            ActivityResultContracts.TakePicture()
-        ) { success ->
-            pendingPhotoUri.takeIf { success }?.let { onPhotoPicked(listOf(it)) }
-            pendingPhotoUri = null
-        }
-        val context = LocalContext.current
-        val permissionsRequester = rememberStoragePermissionRequester {
-            context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, ContentValues())?.let {
-                pendingPhotoUri = it
-                cameraLauncher.launch(it)
+    BottomAppBar(
+        actions = {
+            val photoPicker = rememberLauncherForActivityResult(
+                ActivityResultContracts.PickMultipleVisualMedia(),
+                onPhotoPicked
+            )
+            var pendingPhotoUri by remember { mutableStateOf<Uri?>(null) }
+            val cameraLauncher = rememberLauncherForActivityResult(
+                ActivityResultContracts.TakePicture()
+            ) { success ->
+                pendingPhotoUri.takeIf { success }?.let { onPhotoPicked(listOf(it)) }
+                pendingPhotoUri = null
             }
-        }
+            val context = LocalContext.current
+            val permissionsRequester = rememberStoragePermissionRequester {
+                context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, ContentValues())?.let {
+                    pendingPhotoUri = it
+                    cameraLauncher.launch(it)
+                }
+            }
 
-        IconButton(
-            onClick = {
-                photoPicker.launch(
-                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+            IconButton(
+                onClick = {
+                    photoPicker.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                    )
+                }
+            ) {
+                Icon(
+                    Icons.Outlined.PhotoLibrary,
+                    contentDescription = stringResource(R.string.add_images_gallery_label)
                 )
             }
-        ) {
-            Icon(
-                Icons.Outlined.PhotoLibrary,
-                contentDescription = stringResource(R.string.add_images_gallery_label)
-            )
-        }
-        IconButton(
-            onClick = permissionsRequester::requestIfNecessary
-        ) {
-            Icon(
-                Icons.Outlined.CameraAlt,
-                contentDescription = stringResource(R.string.add_images_gallery_label)
-            )
-        }
-
-        fabAction?.let {
-            @StringRes val labelRes: Int
-            val icon: ImageVector
-            val containerColor: Color
-
-            when (it) {
-                UploadImagesScreenState.FabAction.Upload -> {
-                    icon = Icons.Outlined.CloudUpload
-                    labelRes = R.string.upload_label
-                    containerColor = FloatingActionButtonDefaults.containerColor
-                }
-                UploadImagesScreenState.FabAction.CancelUpload -> {
-                    icon = Icons.Outlined.Close
-                    labelRes = R.string.cancel_label
-                    containerColor = MaterialTheme.colorScheme.errorContainer
-                }
+            IconButton(
+                onClick = permissionsRequester::requestIfNecessary
+            ) {
+                Icon(
+                    Icons.Outlined.CameraAlt,
+                    contentDescription = stringResource(R.string.add_images_gallery_label)
+                )
             }
+        },
+        floatingActionButton = fabAction?.let {
+            {
+                @StringRes val labelRes: Int
+                val icon: ImageVector
+                val containerColor: Color
 
-            val animatedContainerColor by animateColorAsState(
-                containerColor,
-                label = "animatedContainerColor"
-            )
-            val animatedContentColor by animateColorAsState(
-                contentColorFor(containerColor),
-                label = "animatedContentColor"
-            )
+                when (it) {
+                    UploadImagesScreenState.FabAction.Upload -> {
+                        icon = Icons.Outlined.CloudUpload
+                        labelRes = R.string.upload_label
+                        containerColor = FloatingActionButtonDefaults.containerColor
+                    }
+                    UploadImagesScreenState.FabAction.CancelUpload -> {
+                        icon = Icons.Outlined.Close
+                        labelRes = R.string.cancel_label
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    }
+                }
 
-            Spacer(Modifier.weight(1f))
-            ExtendedFloatingActionButton(
-                text = { Text(stringResource(labelRes)) },
-                icon = { Icon(icon, stringResource(labelRes)) },
-                onClick = { onFabClick(it) },
-                modifier = Modifier.animateContentSize(),
-                containerColor = animatedContainerColor,
-                contentColor = animatedContentColor
-            )
+                val animatedContainerColor by animateColorAsState(
+                    containerColor,
+                    label = "animatedContainerColor"
+                )
+                val animatedContentColor by animateColorAsState(
+                    contentColorFor(containerColor),
+                    label = "animatedContentColor"
+                )
+
+                ExtendedFloatingActionButton(
+                    text = { Text(stringResource(labelRes)) },
+                    icon = { Icon(icon, stringResource(labelRes)) },
+                    onClick = { onFabClick(it) },
+                    modifier = Modifier.animateContentSize(),
+                    containerColor = animatedContainerColor,
+                    contentColor = animatedContentColor
+                )
+            }
         }
-    }
+    )
 }
 
 private class BottomBarPreviewParamProvider
