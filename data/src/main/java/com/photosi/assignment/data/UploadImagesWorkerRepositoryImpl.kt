@@ -29,6 +29,10 @@ internal class UploadImagesWorkerRepositoryImpl(
             .await()
     }
 
+    override fun cancel() {
+        workManager.cancelUniqueWork(UPLOAD_IMAGES_WORKER_NAME)
+    }
+
     private companion object {
 
         const val UPLOAD_IMAGES_WORKER_NAME = "upload_images_worker"

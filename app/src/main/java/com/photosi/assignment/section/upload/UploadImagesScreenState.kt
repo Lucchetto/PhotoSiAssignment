@@ -11,5 +11,15 @@ data class UploadImagesScreenState(
     val workerStatus: UploadImagesWorkerStatusEntity?
 ) {
 
-    val canUpload: Boolean = queue?.any { it.status == QueuedImageEntity.Status.Ready } == true
+    val fabAction: FabAction? = when {
+        workerStatus == UploadImagesWorkerStatusEntity.Queued
+                || workerStatus is UploadImagesWorkerStatusEntity.Running -> FabAction.CancelUpload
+        queue?.any { it.status is QueuedImageEntity.Status.Ready } == true -> FabAction.Upload
+        else -> null
+    }
+
+    enum class FabAction {
+        Upload,
+        CancelUpload
+    }
 }

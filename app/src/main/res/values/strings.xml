@@ -12,7 +12,8 @@
     <!-- UploadImagesScreen -->
     <string name="upload_images_screen_title">Upload your images</string>
     <string name="add_images_gallery_label">Add images from gallery</string>
-    <string name="upload_label">Upload</string>
+    <string name="upload_label">Start Upload</string>
+    <string name="cancel_label">Cancel</string>
     <string name="queued_label">Queued</string>
     <string name="uploading_label">Uploading</string>
     <string name="failed_label">Failed</string>

@@ -1,9 +1,12 @@
 package com.photosi.assignment.section.upload
 
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -17,6 +20,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BrokenImage
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.FileUpload
@@ -25,6 +29,7 @@ import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
@@ -34,6 +39,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -49,6 +55,8 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -76,7 +84,7 @@ fun UploadImagesScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     NotificationPermissionRequester()
-    
+
     Scaffold(
         topBar = {
             LargeTopAppBar(
@@ -85,33 +93,11 @@ fun UploadImagesScreen(
             )
         },
         bottomBar = {
-            BottomAppBar {
-                val photoPicker = rememberLauncherForActivityResult(
-                    ActivityResultContracts.PickMultipleVisualMedia(),
-                    viewModel::addImages
-                )
+            BottomBar(
+                fabAction = uiState.fabAction,
+                onPhotoPicked = viewModel::addImages,
+                onFabClick = viewModel::handleFabClick)
 
-                IconButton(
-                    onClick = {
-                        photoPicker.launch(
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                        )
-                    }
-                ) {
-                    Icon(
-                        Icons.Outlined.PhotoLibrary,
-                        contentDescription = stringResource(R.string.add_images_gallery_label)
-                    )
-                }
-                if (uiState.canUpload) {
-                    Spacer(modifier = Modifier.weight(1f))
-                    ExtendedFloatingActionButton(
-                        text = { Text(stringResource(R.string.upload_label)) },
-                        icon = { Icon(Icons.Outlined.CloudUpload, stringResource(R.string.upload_label)) },
-                        onClick = viewModel::startUpload
-                    )
-                }
-            }
         }
     ) { padding ->
         uiState.queue?.let { queue ->
@@ -128,6 +114,70 @@ fun UploadImagesScreen(
                 contentPadding = padding
             )
         } ?: FullScreenLoading(modifier = Modifier.padding(padding))
+    }
+}
+
+@Composable
+private fun BottomBar(
+    fabAction: UploadImagesScreenState.FabAction?,
+    onPhotoPicked: (List<Uri>) -> Unit,
+    onFabClick: (UploadImagesScreenState.FabAction) -> Unit,
+    modifier: Modifier = Modifier
+) = BottomAppBar(modifier = modifier) {
+    val photoPicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickMultipleVisualMedia(),
+        onPhotoPicked
+    )
+
+    IconButton(
+        onClick = {
+            photoPicker.launch(
+                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+            )
+        }
+    ) {
+        Icon(
+            Icons.Outlined.PhotoLibrary,
+            contentDescription = stringResource(R.string.add_images_gallery_label)
+        )
+    }
+
+    fabAction?.let {
+        @StringRes val labelRes: Int
+        val icon: ImageVector
+        val containerColor: Color
+
+        when (it) {
+            UploadImagesScreenState.FabAction.Upload -> {
+                icon = Icons.Outlined.CloudUpload
+                labelRes = R.string.upload_label
+                containerColor = FloatingActionButtonDefaults.containerColor
+            }
+            UploadImagesScreenState.FabAction.CancelUpload -> {
+                icon = Icons.Outlined.Close
+                labelRes = R.string.cancel_label
+                containerColor = MaterialTheme.colorScheme.errorContainer
+            }
+        }
+
+        val animatedContainerColor by animateColorAsState(
+            containerColor,
+            label = "animatedContainerColor"
+        )
+        val animatedContentColor by animateColorAsState(
+            contentColorFor(containerColor),
+            label = "animatedContentColor"
+        )
+
+        Spacer(Modifier.weight(1f))
+        ExtendedFloatingActionButton(
+            text = { Text(stringResource(labelRes)) },
+            icon = { Icon(icon, stringResource(labelRes)) },
+            onClick = { onFabClick(it) },
+            modifier = Modifier.animateContentSize(),
+            containerColor = animatedContainerColor,
+            contentColor = animatedContentColor
+        )
     }
 }
 
@@ -239,6 +289,20 @@ private fun IconText(
         Icon(icon, contentDescription = null)
         Text(stringResource(textRes))
     }
+}
+
+private class FabActionPreviewParamProvider : PreviewParameterProvider<UploadImagesScreenState.FabAction?> {
+
+    override val values: Sequence<UploadImagesScreenState.FabAction?>
+        get() = sequenceOf(*UploadImagesScreenState.FabAction.entries.toTypedArray(), null)
+}
+
+@PreviewLightDark
+@Composable
+private fun BottomBarPreview(
+    @PreviewParameter(FabActionPreviewParamProvider::class) fabAction: UploadImagesScreenState.FabAction?
+) = PhotoSìAssignmentTheme {
+    BottomBar(fabAction, {}, {})
 }
 
 @OptIn(ExperimentalUuidApi::class)

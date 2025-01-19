@@ -34,12 +34,15 @@ class UploadImagesViewModel(
         }
     }
 
-    fun getFileForQueuedImage(entity: QueuedImageEntity) =
-        imageQueueRepository.getFileForQueuedImage(entity)
-
-    fun startUpload() {
-        viewModelScope.launch {
-            uploadImagesWorkerRepository.start()
+    fun handleFabClick(action: UploadImagesScreenState.FabAction) {
+        when (action) {
+            UploadImagesScreenState.FabAction.Upload -> viewModelScope.launch {
+                uploadImagesWorkerRepository.start()
+            }
+            UploadImagesScreenState.FabAction.CancelUpload -> uploadImagesWorkerRepository.cancel()
         }
     }
+
+    fun getFileForQueuedImage(entity: QueuedImageEntity) =
+        imageQueueRepository.getFileForQueuedImage(entity)
 }

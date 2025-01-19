@@ -7,4 +7,6 @@ interface UploadImagesWorkerRepository {
     val workerStatusFlow: Flow<UploadImagesWorkerStatusEntity?>
 
     suspend fun start()
+
+    fun cancel()
 }
