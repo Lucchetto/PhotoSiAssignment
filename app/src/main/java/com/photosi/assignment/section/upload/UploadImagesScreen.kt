@@ -31,6 +31,7 @@ import androidx.compose.material.icons.outlined.FileUpload
 import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
@@ -41,6 +42,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.contentColorFor
@@ -61,6 +63,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.PreviewLightDark
@@ -73,8 +76,10 @@ import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
 import com.photosi.assignment.R
+import com.photosi.assignment.domain.UploadImagesWorkerStatusEntity
 import com.photosi.assignment.domain.entity.QueuedImageEntity
 import com.photosi.assignment.domain.entity.Result
+import com.photosi.assignment.time.TimeFormatters
 import com.photosi.assignment.ui.component.FullScreenLoading
 import com.photosi.assignment.ui.component.SwipeToDeleteContainer
 import com.photosi.assignment.ui.component.SwipeToDeleteState
@@ -107,6 +112,7 @@ fun UploadImagesScreen(
         },
         bottomBar = {
             BottomBar(
+                workerStatus = uiState.workerStatus,
                 fabAction = uiState.fabAction,
                 onPhotoPicked = viewModel::addImages,
                 onFabClick = viewModel::handleFabClick)
@@ -132,65 +138,91 @@ fun UploadImagesScreen(
 
 @Composable
 private fun BottomBar(
+    workerStatus: UploadImagesWorkerStatusEntity?,
     fabAction: UploadImagesScreenState.FabAction?,
     onPhotoPicked: (List<Uri>) -> Unit,
     onFabClick: (UploadImagesScreenState.FabAction) -> Unit,
     modifier: Modifier = Modifier
-) = BottomAppBar(modifier = modifier) {
-    val photoPicker = rememberLauncherForActivityResult(
-        ActivityResultContracts.PickMultipleVisualMedia(),
-        onPhotoPicked
-    )
-
-    IconButton(
-        onClick = {
-            photoPicker.launch(
-                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-            )
+) = Column(modifier = modifier.animateContentSize()) {
+    (workerStatus as? UploadImagesWorkerStatusEntity.Running)?.let {
+        val description = buildString {
+            append(stringResource(R.string.upload_running_desc_image_count, it.currentItem + 1, it.totalCount))
+            it.estimatedRemainingTime?.let {
+                append("\n")
+                append(
+                    stringResource(
+                        R.string.upload_running_desc_estimated_time,
+                        TimeFormatters.formatCountdown(LocalContext.current, it)
+                    )
+                )
+            }
         }
-    ) {
-        Icon(
-            Icons.Outlined.PhotoLibrary,
-            contentDescription = stringResource(R.string.add_images_gallery_label)
-        )
+
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = BottomAppBarDefaults.containerColor,
+            tonalElevation = BottomAppBarDefaults.ContainerElevation
+        ) {
+            Text(description, modifier = Modifier.padding(MaterialTheme.spacing.level4))
+        }
     }
 
-    fabAction?.let {
-        @StringRes val labelRes: Int
-        val icon: ImageVector
-        val containerColor: Color
+    BottomAppBar {
+        val photoPicker = rememberLauncherForActivityResult(
+            ActivityResultContracts.PickMultipleVisualMedia(),
+            onPhotoPicked
+        )
 
-        when (it) {
-            UploadImagesScreenState.FabAction.Upload -> {
-                icon = Icons.Outlined.CloudUpload
-                labelRes = R.string.upload_label
-                containerColor = FloatingActionButtonDefaults.containerColor
+        IconButton(
+            onClick = {
+                photoPicker.launch(
+                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                )
             }
-            UploadImagesScreenState.FabAction.CancelUpload -> {
-                icon = Icons.Outlined.Close
-                labelRes = R.string.cancel_label
-                containerColor = MaterialTheme.colorScheme.errorContainer
-            }
+        ) {
+            Icon(
+                Icons.Outlined.PhotoLibrary,
+                contentDescription = stringResource(R.string.add_images_gallery_label)
+            )
         }
 
-        val animatedContainerColor by animateColorAsState(
-            containerColor,
-            label = "animatedContainerColor"
-        )
-        val animatedContentColor by animateColorAsState(
-            contentColorFor(containerColor),
-            label = "animatedContentColor"
-        )
+        fabAction?.let {
+            @StringRes val labelRes: Int
+            val icon: ImageVector
+            val containerColor: Color
 
-        Spacer(Modifier.weight(1f))
-        ExtendedFloatingActionButton(
-            text = { Text(stringResource(labelRes)) },
-            icon = { Icon(icon, stringResource(labelRes)) },
-            onClick = { onFabClick(it) },
-            modifier = Modifier.animateContentSize(),
-            containerColor = animatedContainerColor,
-            contentColor = animatedContentColor
-        )
+            when (it) {
+                UploadImagesScreenState.FabAction.Upload -> {
+                    icon = Icons.Outlined.CloudUpload
+                    labelRes = R.string.upload_label
+                    containerColor = FloatingActionButtonDefaults.containerColor
+                }
+                UploadImagesScreenState.FabAction.CancelUpload -> {
+                    icon = Icons.Outlined.Close
+                    labelRes = R.string.cancel_label
+                    containerColor = MaterialTheme.colorScheme.errorContainer
+                }
+            }
+
+            val animatedContainerColor by animateColorAsState(
+                containerColor,
+                label = "animatedContainerColor"
+            )
+            val animatedContentColor by animateColorAsState(
+                contentColorFor(containerColor),
+                label = "animatedContentColor"
+            )
+
+            Spacer(Modifier.weight(1f))
+            ExtendedFloatingActionButton(
+                text = { Text(stringResource(labelRes)) },
+                icon = { Icon(icon, stringResource(labelRes)) },
+                onClick = { onFabClick(it) },
+                modifier = Modifier.animateContentSize(),
+                containerColor = animatedContainerColor,
+                contentColor = animatedContentColor
+            )
+        }
     }
 }
 
@@ -351,18 +383,30 @@ private fun IconText(
     }
 }
 
-private class FabActionPreviewParamProvider : PreviewParameterProvider<UploadImagesScreenState.FabAction?> {
+private class BottomBarPreviewParamProvider
+    : PreviewParameterProvider<Pair<UploadImagesWorkerStatusEntity?, UploadImagesScreenState.FabAction?>> {
 
-    override val values: Sequence<UploadImagesScreenState.FabAction?>
-        get() = sequenceOf(*UploadImagesScreenState.FabAction.entries.toTypedArray(), null)
+    override val values: Sequence<Pair<UploadImagesWorkerStatusEntity?, UploadImagesScreenState.FabAction?>>
+        get() = sequenceOf(
+            null to null,
+            null to UploadImagesScreenState.FabAction.Upload,
+            Pair(
+                UploadImagesWorkerStatusEntity.Running(1, 25, null),
+                UploadImagesScreenState.FabAction.CancelUpload
+            ),
+            Pair(
+                UploadImagesWorkerStatusEntity.Running(1, 25, 95000),
+                UploadImagesScreenState.FabAction.CancelUpload
+            )
+        )
 }
 
 @PreviewLightDark
 @Composable
 private fun BottomBarPreview(
-    @PreviewParameter(FabActionPreviewParamProvider::class) fabAction: UploadImagesScreenState.FabAction?
+    @PreviewParameter(BottomBarPreviewParamProvider::class) params: Pair<UploadImagesWorkerStatusEntity?, UploadImagesScreenState.FabAction?>
 ) = PhotoSìAssignmentTheme {
-    BottomBar(fabAction, {}, {})
+    BottomBar(params.first, params.second, {}, {})
 }
 
 @OptIn(ExperimentalUuidApi::class)
