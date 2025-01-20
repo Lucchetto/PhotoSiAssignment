@@ -10,7 +10,6 @@ import androidx.annotation.StringRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -71,7 +70,18 @@ fun UploadImagesScreen(
     Scaffold(
         topBar = {
             LargeTopAppBar(
-                title = { Text(stringResource(R.string.upload_images_screen_title)) },
+                title = {
+                    @StringRes val resId = when (uiState.workerStatus) {
+                        is UploadImagesWorkerStatusEntity.Completed ->
+                            R.string.upload_images_screen_completed_title
+                        UploadImagesWorkerStatusEntity.Queued, null ->
+                            R.string.upload_images_screen_default_title
+                        is UploadImagesWorkerStatusEntity.Running ->
+                            R.string.upload_images_screen_uploading_title
+                    }
+
+                    Text(stringResource(resId))
+                },
                 scrollBehavior = scrollBehavior
             )
         },

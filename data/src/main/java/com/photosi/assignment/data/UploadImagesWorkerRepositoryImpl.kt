@@ -1,5 +1,6 @@
 package com.photosi.assignment.data
 
+import android.os.Bundle
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -8,6 +9,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.await
 import com.photosi.assignment.data.mapper.UploadImagesWorkerStatusEntityMapper
+import com.photosi.assignment.data.util.IntentHelper
 import com.photosi.assignment.data.worker.UploadImagesWorker
 import com.photosi.assignment.domain.UploadImagesWorkerRepository
 import com.photosi.assignment.domain.UploadImagesWorkerStatusEntity
@@ -57,6 +59,9 @@ internal class UploadImagesWorkerRepositoryImpl(
     override suspend fun clearCompletedWorkerStatus() {
         dataStore.edit { it.remove(completedWorkerIdPrefKey) }
     }
+
+    override fun isFromWorkerCompletedIntent(extras: Bundle) =
+        IntentHelper.isWorkerCompletedMarker(extras)
 
     private companion object {
 

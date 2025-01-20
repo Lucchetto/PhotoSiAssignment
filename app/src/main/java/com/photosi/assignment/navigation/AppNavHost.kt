@@ -1,5 +1,6 @@
 package com.photosi.assignment.navigation
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -17,8 +18,9 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun AppNavHost(viewModel: AppNavHostViewModel) {
     val navController = rememberNavController()
+    val activity = LocalActivity.current
     val initialRoute by produceState<AppRoute?>(null) {
-        value = if (viewModel.skipCountrySelection()) {
+        value = if (viewModel.skipCountrySelection(activity?.intent)) {
             AppRoute.UploadImages
         } else {
             AppRoute.SelectCountries

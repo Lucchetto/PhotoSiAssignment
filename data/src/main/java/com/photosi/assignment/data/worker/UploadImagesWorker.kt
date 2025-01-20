@@ -18,6 +18,7 @@ import androidx.work.WorkerParameters
 import com.photosi.assignment.data.InternalPreferenceKeys
 import com.photosi.assignment.data.R
 import com.photosi.assignment.data.mapper.UploadImagesWorkerStatusEntityRunningMapper
+import com.photosi.assignment.data.util.IntentHelper
 import com.photosi.assignment.data.util.TimeHelper
 import com.photosi.assignment.domain.ImageQueueRepository
 import com.photosi.assignment.domain.RemoteImagesRepository
@@ -130,7 +131,7 @@ internal class UploadImagesWorker(
             .setTitleAndTicker(getString(R.string.upload_result_notification_title))
             .setStyle(NotificationCompat.BigTextStyle().bigText(description))
             .setContentText(description)
-            .launchLauncherActivityOnClick(this)
+            .launchLauncherActivityOnClick(this, IntentHelper.workerCompletedMarkerBundle())
             .setAutoCancel(true)
             .build()
     }
