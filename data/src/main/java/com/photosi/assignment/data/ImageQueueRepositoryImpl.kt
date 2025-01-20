@@ -85,7 +85,6 @@ internal class ImageQueueRepositoryImpl(
     }
 
     override suspend fun deleteAll() = withContext(Dispatchers.IO) {
-        imagesDir.deleteRecursively()
         imagesDir.listFiles()?.forEach { it.delete() }
         appDatabase.queuedImageQueries.deleteAll()
     }
