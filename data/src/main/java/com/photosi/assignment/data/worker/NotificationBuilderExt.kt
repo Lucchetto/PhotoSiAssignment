@@ -8,7 +8,7 @@ import androidx.core.app.NotificationCompat
 private fun notificationPendingIntent(
     context: Context,
     intent: Intent,
-    flags: Int = PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_ONE_SHOT
+    flags: Int = PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
 ): PendingIntent = PendingIntent.getActivity(context, 0, intent, flags)
 
 internal fun NotificationCompat.Builder.setBigContent(string: String) =
