@@ -31,18 +31,18 @@ jobs:
       - name: Build release APK
         run: >
           ./gradlew assembleRelease
-          -Pandroid.injected.signing.store.file=${{ github.workspace }}/signing-key.jks
-          -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }}
-          -Pandroid.injected.signing.key.alias=${{ secrets.KEYSTORE_KEY_NAME }}
-          -Pandroid.injected.signing.key.password=${{ secrets.KEYSTORE_KEY_PASSWORD }}
+          -Pandroid.injected.signing.store.file='${{ github.workspace }}/signing-key.jks'
+          -Pandroid.injected.signing.store.password='${{ secrets.KEYSTORE_PASSWORD }}'
+          -Pandroid.injected.signing.key.alias='${{ secrets.KEYSTORE_KEY_NAME }}'
+          -Pandroid.injected.signing.key.password='${{ secrets.KEYSTORE_KEY_PASSWORD }}'
 
       - name: Build release bundle
         run: >
           ./gradlew bundleRelease
-          -Pandroid.injected.signing.store.file=${{ github.workspace }}/signing-key.jks
-          -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }}
-          -Pandroid.injected.signing.key.alias=${{ secrets.KEYSTORE_KEY_NAME }}
-          -Pandroid.injected.signing.key.password=${{ secrets.KEYSTORE_KEY_PASSWORD }}
+          -Pandroid.injected.signing.store.file='${{ github.workspace }}/signing-key.jks'
+          -Pandroid.injected.signing.store.password='${{ secrets.KEYSTORE_PASSWORD }}'
+          -Pandroid.injected.signing.key.alias='${{ secrets.KEYSTORE_KEY_NAME }}'
+          -Pandroid.injected.signing.key.password='${{ secrets.KEYSTORE_KEY_PASSWORD }}'
 
       - name: Cleanup signing keystore
         run: rm $GITHUB_WORKSPACE/signing-key.jks
