@@ -36,9 +36,6 @@ jobs:
           -Pandroid.injected.signing.key.alias='${{ secrets.KEYSTORE_KEY_NAME }}'
           -Pandroid.injected.signing.key.password='${{ secrets.KEYSTORE_KEY_PASSWORD }}'
 
-      - name: Move release APK
-        run: mv 'app/release/app-release.apk' '${{ github.workspace }}'
-
       - name: Build release bundle
         run: >
           ./gradlew bundleRelease
@@ -46,9 +43,6 @@ jobs:
           -Pandroid.injected.signing.store.password='${{ secrets.KEYSTORE_PASSWORD }}'
           -Pandroid.injected.signing.key.alias='${{ secrets.KEYSTORE_KEY_NAME }}'
           -Pandroid.injected.signing.key.password='${{ secrets.KEYSTORE_KEY_PASSWORD }}'
-
-      - name: Move release bundle
-        run: mv 'app/release/app-release.aab' '${{ github.workspace }}'
 
       - name: Cleanup signing keystore
         run: rm $GITHUB_WORKSPACE/signing-key.jks
@@ -60,5 +54,5 @@ jobs:
         with:
           draft: true
           files: |
-            app-release.apk
-            app-release.aab
+            app/build/outputs/apk/release/app-release.apk
+            app/build/outputs/bundle/release/app-release.aab
