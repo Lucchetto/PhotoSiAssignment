@@ -45,6 +45,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
@@ -59,6 +60,7 @@ import com.photosi.assignment.ui.component.rememberSwipeToDeleteState
 import com.photosi.assignment.ui.theme.PhotoSìAssignmentTheme
 import com.photosi.assignment.ui.theme.spacing
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
 import kotlin.uuid.ExperimentalUuidApi
@@ -73,7 +75,22 @@ fun ImageQueueList(
     onDelete: (QueuedImageEntity) -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues()
-) {
+): Unit = if (queue.isEmpty()) {
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        contentPadding = contentPadding,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        item {
+            Text(
+                stringResource(R.string.empty_queue_hint),
+                modifier = Modifier.padding(MaterialTheme.spacing.level4),
+                textAlign = TextAlign.Center,
+            )
+        }
+    }
+} else {
     var draggingToDeleteAnimatingKey by remember { mutableStateOf<Uuid?>(null) }
     val coroutineScope = rememberCoroutineScope()
 
@@ -224,7 +241,7 @@ private fun IconText(
 @OptIn(ExperimentalUuidApi::class)
 @PreviewLightDark
 @Composable
-private fun ImageQueueListPreview() = PhotoSìAssignmentTheme {
+private fun ImageQueueListFilledPreview() = PhotoSìAssignmentTheme {
     Scaffold { padding ->
         ImageQueueList(
             buildList {
@@ -253,6 +270,24 @@ private fun ImageQueueListPreview() = PhotoSìAssignmentTheme {
                     )
                 }
             }.toImmutableList(),
+            imageRequestProvider = {
+                ImageRequest.Builder(LocalPlatformContext.current)
+                    .data(R.drawable.ic_launcher_foreground)
+                    .build()
+            },
+            allowDelete = true,
+            onDelete = {},
+            modifier = Modifier.padding(padding)
+        )
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun ImageQueueListEmptyPreview() = PhotoSìAssignmentTheme {
+    Scaffold { padding ->
+        ImageQueueList(
+            persistentListOf(),
             imageRequestProvider = {
                 ImageRequest.Builder(LocalPlatformContext.current)
                     .data(R.drawable.ic_launcher_foreground)

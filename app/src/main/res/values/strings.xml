@@ -27,4 +27,5 @@
     <string name="upload_running_desc_estimated_time">Estimated remaining time: %1$s</string>
     <string name="write_storage_rationale_desc">Please grant the permission to write to storage in Android settings</string>
     <string name="write_storage_denied_desc">Please grant the permission to write to storage</string>
+    <string name="empty_queue_hint">To start, select images from the gallery or the camera using the bottom bar actions.\nIf you want to delete an image from queue, just swipe left or right</string>
 </resources>
