@@ -33,7 +33,8 @@ internal val ApiModule = module {
     }
     single {
         val httpClient = OkHttpClient.Builder()
-            // Relax read response timeout
+            // Relax IO timeouts
+            .writeTimeout(10, TimeUnit.MINUTES)
             .readTimeout(10, TimeUnit.MINUTES)
             .build()
 
