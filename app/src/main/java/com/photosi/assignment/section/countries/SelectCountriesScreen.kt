@@ -1,29 +1,38 @@
 package com.photosi.assignment.section.countries
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -69,6 +78,8 @@ fun SelectCountriesScreen(
 
         uiState?.let {
             CountriesList(
+                searchQuery = it.searchQuery,
+                onSearchQueryChange = viewModel::updateSearchQuery,
                 countries = it.countries,
                 onRetry = viewModel::reloadCountries,
                 onCountrySelect = {
@@ -85,8 +96,11 @@ fun SelectCountriesScreen(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun CountriesList(
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit,
     countries: RepoApiResult<ImmutableList<CountryEntity>, Nothing>,
     onRetry: () -> Unit,
     onCountrySelect: (CountryEntity) -> Unit,
@@ -128,8 +142,31 @@ private fun CountriesList(
     }
     is Result.Success -> LazyColumn(
         modifier = modifier.fillMaxSize(),
-        contentPadding = contentPadding
+        contentPadding = contentPadding,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        stickyHeader {
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = onSearchQueryChange,
+                modifier = Modifier.padding(MaterialTheme.spacing.level4).fillMaxWidth(),
+                placeholder = { Text(stringResource(R.string.searchbar_placeholder)) },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                trailingIcon = if (searchQuery.isNotEmpty()) {
+                    {
+                        IconButton(onClick = { onSearchQueryChange("") }) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = stringResource(R.string.clear)
+                            )
+                        }
+                    }
+                } else {
+                    null
+                },
+                singleLine = true,
+            )
+        }
         items(countries.value) {
             CountryItem(country = it, onClick = { onCountrySelect(it) })
         }
@@ -215,8 +252,12 @@ private class CountriesListPreviewParamProvider : PreviewParameterProvider<RepoA
 private fun CountriesListPreview(
     @PreviewParameter(CountriesListPreviewParamProvider::class) countries: RepoApiResult<ImmutableList<CountryEntity>, Nothing>
 ) = PhotoSìAssignmentTheme {
+    var searchQuery by remember { mutableStateOf("") }
+
     Scaffold {
         CountriesList(
+            searchQuery = searchQuery,
+            onSearchQueryChange = { searchQuery = it },
             countries = countries,
             onRetry = {},
             onCountrySelect = {},
