@@ -29,7 +29,7 @@ jobs:
         run: ./gradlew test
 
       - name: Build release APK
-        run: |
+        run: >
           ./gradlew assembleRelease
           -Pandroid.injected.signing.store.file=${{ github.workspace }}/signing-key.jks
           -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }}
@@ -37,7 +37,7 @@ jobs:
           -Pandroid.injected.signing.key.password=${{ secrets.KEYSTORE_KEY_PASSWORD }}
 
       - name: Build release bundle
-        run: |
+        run: >
           ./gradlew bundleRelease
           -Pandroid.injected.signing.store.file=${{ github.workspace }}/signing-key.jks
           -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }}
