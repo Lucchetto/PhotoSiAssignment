@@ -15,6 +15,8 @@
     <string name="upload_images_screen_uploading_title">Uploading your images…</string>
     <string name="upload_images_screen_completed_title">Upload completed!</string>
     <string name="add_images_gallery_label">Add images from gallery</string>
+    <string name="add_image_camera_label">Add image from camera</string>
+    <string name="clear_all_label">Clear all</string>
     <string name="upload_label">Start Upload</string>
     <string name="cancel_label">Cancel</string>
     <string name="queued_label">Queued</string>

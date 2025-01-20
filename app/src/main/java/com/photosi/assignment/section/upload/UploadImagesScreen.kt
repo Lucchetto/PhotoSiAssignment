@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CameraAlt
+import androidx.compose.material.icons.outlined.ClearAll
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material.icons.outlined.PhotoLibrary
@@ -87,10 +88,13 @@ fun UploadImagesScreen(
         },
         bottomBar = {
             BottomBar(
+                hasImages = uiState.queue?.isEmpty() == false,
                 workerStatus = uiState.workerStatus,
                 fabAction = uiState.fabAction,
                 onPhotoPicked = viewModel::addImages,
-                onFabClick = viewModel::handleFabClick)
+                onFabClick = viewModel::handleFabClick,
+                onClearAllClick = viewModel::clearAllImages
+            )
 
         }
     ) { padding ->
@@ -113,10 +117,12 @@ fun UploadImagesScreen(
 
 @Composable
 private fun BottomBar(
+    hasImages: Boolean,
     workerStatus: UploadImagesWorkerStatusEntity?,
     fabAction: UploadImagesScreenState.FabAction?,
     onPhotoPicked: (List<Uri>) -> Unit,
     onFabClick: (UploadImagesScreenState.FabAction) -> Unit,
+    onClearAllClick: () -> Unit,
     modifier: Modifier = Modifier
 ) = Column(modifier = modifier.animateContentSize()) {
     (workerStatus as? UploadImagesWorkerStatusEntity.Running)?.let {
@@ -180,7 +186,16 @@ private fun BottomBar(
             ) {
                 Icon(
                     Icons.Outlined.CameraAlt,
-                    contentDescription = stringResource(R.string.add_images_gallery_label)
+                    contentDescription = stringResource(R.string.add_image_camera_label)
+                )
+            }
+            IconButton(
+                onClick = onClearAllClick,
+                enabled = hasImages && workerStatus !is UploadImagesWorkerStatusEntity.Running
+            ) {
+                Icon(
+                    Icons.Outlined.ClearAll,
+                    contentDescription = stringResource(R.string.clear_all_label)
                 )
             }
         },
@@ -248,5 +263,5 @@ private class BottomBarPreviewParamProvider
 private fun BottomBarPreview(
     @PreviewParameter(BottomBarPreviewParamProvider::class) params: Pair<UploadImagesWorkerStatusEntity?, UploadImagesScreenState.FabAction?>
 ) = PhotoSìAssignmentTheme {
-    BottomBar(params.first, params.second, {}, {})
+    BottomBar(true, params.first, params.second, {}, {}, {})
 }

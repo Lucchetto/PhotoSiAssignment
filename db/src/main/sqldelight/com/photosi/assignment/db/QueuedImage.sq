@@ -22,3 +22,6 @@ UPDATE QueuedImage SET status = ?, resultUrl = ? WHERE id = ?;
 
 deleteById:
 DELETE FROM QueuedImage WHERE id = ?;
+
+deleteAll:
+DELETE FROM QueuedImage;

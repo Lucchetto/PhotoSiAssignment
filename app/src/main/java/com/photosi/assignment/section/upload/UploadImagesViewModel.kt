@@ -47,6 +47,11 @@ class UploadImagesViewModel(
     fun getFileForQueuedImage(entity: QueuedImageEntity) =
         imageQueueRepository.getFileForQueuedImage(entity)
 
+    fun clearAllImages() = viewModelScope.launch {
+        imageQueueRepository.deleteAll()
+        uploadImagesWorkerRepository.clearCompletedWorkerStatus()
+    }
+
     @OptIn(ExperimentalUuidApi::class)
     fun deleteImage(entity: QueuedImageEntity) {
         viewModelScope.launch {

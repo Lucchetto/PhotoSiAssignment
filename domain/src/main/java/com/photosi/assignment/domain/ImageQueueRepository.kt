@@ -23,4 +23,6 @@ interface ImageQueueRepository {
 
     @OptIn(ExperimentalUuidApi::class)
     suspend fun deleteImageById(id: Uuid)
+
+    suspend fun deleteAll()
 }
