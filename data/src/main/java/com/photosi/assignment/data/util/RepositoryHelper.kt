@@ -24,6 +24,8 @@ internal object RepositoryHelper {
         // Coroutines cancellation must not be suppressed
         if (e is CancellationException) throw e
 
+        e.printStackTrace()
+
         val error = errorMapper.mapTo(e)?.let {
             RepoApiErrorEntity.Custom(it)
         } ?: when (e) {
