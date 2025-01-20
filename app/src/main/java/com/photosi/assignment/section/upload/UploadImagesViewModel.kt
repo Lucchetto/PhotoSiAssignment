@@ -32,6 +32,9 @@ class UploadImagesViewModel(
     fun addImages(uris: List<Uri>) {
         viewModelScope.launch {
             imageQueueRepository.addImages(uris)
+            // When adding images we are most likely going to start another worker, current completed
+            // worker state is no longer necessary
+            uploadImagesWorkerRepository.clearCompletedWorkerStatus()
         }
     }
 
