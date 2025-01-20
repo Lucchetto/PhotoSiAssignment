@@ -7,6 +7,7 @@ import coil3.SingletonImageLoader
 import coil3.svg.SvgDecoder
 import coil3.util.DebugLogger
 import com.photosi.assignment.data.DataModule
+import com.photosi.assignment.navigation.AppNavHostModule
 import com.photosi.assignment.section.countries.SelectCountriesScreenModule
 import com.photosi.assignment.section.upload.UploadImagesScreenModule
 import org.koin.android.ext.koin.androidContext
@@ -27,7 +28,7 @@ class PhotosiApplication: Application(), SingletonImageLoader.Factory {
             // setup a WorkManager instance
             workManagerFactory()
             // Load modules
-            modules(DataModule, SelectCountriesScreenModule, UploadImagesScreenModule)
+            modules(DataModule, SelectCountriesScreenModule, UploadImagesScreenModule, AppNavHostModule)
         }
     }
 

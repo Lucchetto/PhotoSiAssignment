@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -13,23 +15,32 @@ import com.photosi.assignment.section.upload.UploadImagesScreen
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun AppNavHost() {
+fun AppNavHost(viewModel: AppNavHostViewModel) {
     val navController = rememberNavController()
-
-    NavHost(
-        navController,
-        startDestination = AppRoute.SelectCountries,
-        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
-        enterTransition = MaterialNavigationAnimation.enterTransition,
-        exitTransition = MaterialNavigationAnimation.exitTransition,
-        popEnterTransition = MaterialNavigationAnimation.popEnterTransition,
-        popExitTransition = MaterialNavigationAnimation.popExitTransition
-    ) {
-        composable<AppRoute.SelectCountries> {
-            SelectCountriesScreen(navController, koinViewModel())
+    val initialRoute by produceState<AppRoute?>(null) {
+        value = if (viewModel.skipCountrySelection()) {
+            AppRoute.UploadImages
+        } else {
+            AppRoute.SelectCountries
         }
-        composable<AppRoute.UploadImages> {
-            UploadImagesScreen(navController, koinViewModel())
+    }
+
+    initialRoute?.let {
+        NavHost(
+            navController,
+            startDestination = it,
+            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
+            enterTransition = MaterialNavigationAnimation.enterTransition,
+            exitTransition = MaterialNavigationAnimation.exitTransition,
+            popEnterTransition = MaterialNavigationAnimation.popEnterTransition,
+            popExitTransition = MaterialNavigationAnimation.popExitTransition
+        ) {
+            composable<AppRoute.SelectCountries> {
+                SelectCountriesScreen(navController, koinViewModel())
+            }
+            composable<AppRoute.UploadImages> {
+                UploadImagesScreen(navController, koinViewModel())
+            }
         }
     }
 }
