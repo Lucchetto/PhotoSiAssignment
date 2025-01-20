@@ -1,5 +1,8 @@
 package com.photosi.assignment.data
 
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
@@ -9,15 +12,33 @@ import com.photosi.assignment.data.worker.UploadImagesWorker
 import com.photosi.assignment.domain.UploadImagesWorkerRepository
 import com.photosi.assignment.domain.UploadImagesWorkerStatusEntity
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.toKotlinUuid
 
 internal class UploadImagesWorkerRepositoryImpl(
+    private val dataStore: DataStore<Preferences>,
     private val workManager: WorkManager
 ): UploadImagesWorkerRepository {
 
+    private val completedWorkerIdPrefKey = InternalPreferenceKeys.COMPLETED_WORKER_ID
+
+    @OptIn(ExperimentalUuidApi::class)
     override val workerStatusFlow: Flow<UploadImagesWorkerStatusEntity?>
-        get() = workManager.getWorkInfosForUniqueWorkFlow(UPLOAD_IMAGES_WORKER_NAME).map { infos ->
-            infos.firstOrNull()?.let(UploadImagesWorkerStatusEntityMapper::mapTo)
+        get() = combine(
+            workManager.getWorkInfosForUniqueWorkFlow(UPLOAD_IMAGES_WORKER_NAME),
+            dataStore.data.map { it[completedWorkerIdPrefKey] }
+        ) { infos, completedWorkerId ->
+            infos.firstOrNull()?.let { workInfo ->
+                val mapped = workInfo.let(UploadImagesWorkerStatusEntityMapper::mapTo)
+
+                mapped.takeIf {
+                    it !is UploadImagesWorkerStatusEntity.Completed
+                            // We should expose completed worker status only if it's being tracked
+                            || workInfo.id.toKotlinUuid().toByteArray().contentEquals(completedWorkerId)
+                }
+            }
         }
 
     override suspend fun start() {
@@ -31,6 +52,10 @@ internal class UploadImagesWorkerRepositoryImpl(
 
     override fun cancel() {
         workManager.cancelUniqueWork(UPLOAD_IMAGES_WORKER_NAME)
+    }
+
+    override suspend fun clearCompletedWorkerStatus() {
+        dataStore.edit { it.remove(completedWorkerIdPrefKey) }
     }
 
     private companion object {

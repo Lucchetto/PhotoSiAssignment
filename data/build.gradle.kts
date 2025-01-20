@@ -55,6 +55,7 @@ dependencies {
     implementation(libs.sqldelight.coroutines.extensions)
     implementation(libs.work.runtime.ktx)
     implementation(libs.koin.androidx.workmanager)
+    implementation(libs.androidx.datastore.preferences)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
 }

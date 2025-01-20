@@ -9,4 +9,6 @@ interface UploadImagesWorkerRepository {
     suspend fun start()
 
     fun cancel()
+
+    suspend fun clearCompletedWorkerStatus()
 }

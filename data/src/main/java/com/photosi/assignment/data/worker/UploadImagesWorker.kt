@@ -8,10 +8,14 @@ import android.os.SystemClock
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import com.photosi.assignment.data.InternalPreferenceKeys
 import com.photosi.assignment.data.R
 import com.photosi.assignment.data.mapper.UploadImagesWorkerStatusEntityRunningMapper
 import com.photosi.assignment.data.util.TimeHelper
@@ -28,14 +32,16 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import kotlin.math.roundToInt
 import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.toKotlinUuid
 import com.photosi.assignment.domain.entity.Result as DomainResult
 
 internal class UploadImagesWorker(
     appContext: Context,
     params: WorkerParameters,
     workManager: WorkManager,
+    private val dataStore: DataStore<Preferences>,
     private val imagesQueueRepository: Lazy<ImageQueueRepository>,
-    private val remoteImagesRepository: Lazy<RemoteImagesRepository>
+    private val remoteImagesRepository: Lazy<RemoteImagesRepository>,
 ) : CoroutineWorker(appContext, params) {
 
     private val notificationManager = NotificationManagerCompat.from(appContext)
@@ -52,6 +58,7 @@ internal class UploadImagesWorker(
             ).build()
         )
 
+    @OptIn(ExperimentalUuidApi::class)
     override suspend fun doWork(): Result {
         // Prevent upload from being restarted on failure
         if (runAttemptCount > 1) {
@@ -72,6 +79,10 @@ internal class UploadImagesWorker(
             RESULT_NOTIFICATION_ID,
             buildResultNotification(successCount, failedCount)
         )
+
+        dataStore.edit {
+            it[InternalPreferenceKeys.COMPLETED_WORKER_ID] = id.toKotlinUuid().toByteArray()
+        }
 
         return if (failedCount > 0) Result.failure() else Result.success()
     }
